@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import yaml
 import os 
+import time 
 
 # ---------------- LOAD CONFIG ----------------
 save_dir = "/Users/angusgray/Desktop/Dissertation/visualisation/figure_output/RG_bilateral"
@@ -11,6 +12,14 @@ os.makedirs(save_dir, exist_ok=True)
 
 with open("/Users/angusgray/Desktop/Dissertation/nest_models/NEST_inbuild/config/config.yaml") as f:
     config = yaml.safe_load(f)
+
+    print("Config Loaded!")
+    print(config)
+    #time.sleep(10)
+
+
+
+
 
 # ---------------- NEST SETUP ----------------
 nest.ResetKernel()
@@ -79,6 +88,54 @@ def connect_ipsi(side):
 connect_ipsi("L")
 connect_ipsi("R")
 
+# ---------- Create V2a and MNP pools (ipsilateral) ----------
+for side in ["L", "R"]:
+    v2a_f_name = f"V2a_flx_{side}"
+    v2a_e_name = f"V2a_ext_{side}"
+    mnp_f_name = f"MNP_flx_{side}"
+    mnp_e_name = f"MNP_ext_{side}"
+
+    # make populations if in config
+    for nm in [v2a_f_name, v2a_e_name, mnp_f_name, mnp_e_name]:
+        if nm not in pops and nm in config["populations"]:
+            make_pop(nm)
+
+    # connect RG → V2a → MNP
+    rg_f = pops.get(f"RG_Flx_exc_{side}", None)
+    rg_e = pops.get(f"RG_Ext_exc_{side}", None)
+
+    if rg_f is not None:
+        nest.Connect(rg_f, pops[v2a_f_name],
+                     conn_spec={"rule": "pairwise_bernoulli", "p": config["p_v2a"]},
+                     syn_spec={"weight": config["w_exc"], "delay": config["d_exc"]})
+        nest.Connect(rg_f, pops[mnp_f_name],
+                     conn_spec={"rule": "pairwise_bernoulli", "p": 0.2},
+                     syn_spec={"weight": config["w_rg_mn"] * 0.5, "delay": config["d_exc"]})
+
+    if rg_e is not None:
+        nest.Connect(rg_e, pops[v2a_e_name],
+                     conn_spec={"rule": "pairwise_bernoulli", "p": config["p_v2a"]},
+                     syn_spec={"weight": config["w_exc"], "delay": config["d_exc"]})
+        nest.Connect(rg_e, pops[mnp_e_name],
+                     conn_spec={"rule": "pairwise_bernoulli", "p": 0.2},
+                     syn_spec={"weight": config["w_rg_mn"] * 0.5, "delay": config["d_exc"]})
+
+    # V2a → MNP
+    nest.Connect(pops[v2a_f_name], pops[mnp_f_name],
+                 conn_spec={"rule": "pairwise_bernoulli", "p": config["p_v2a"]},
+                 syn_spec={"weight": config["w_v2a_mn"], "delay": config["d_exc"]})
+    nest.Connect(pops[v2a_e_name], pops[mnp_e_name],
+                 conn_spec={"rule": "pairwise_bernoulli", "p": config["p_v2a"]},
+                 syn_spec={"weight": config["w_v2a_mn"], "delay": config["d_exc"]})
+
+    # Poisson background input to MNPs
+    pg_mnp = nest.Create("poisson_generator", params={"rate": config["pg_mnp_rate"]})
+    nest.Connect(pg_mnp, pops[mnp_f_name],
+                 syn_spec={"weight": config["pg_mnp_weight"], "delay": config["pg_mnp_delay"]})
+    nest.Connect(pg_mnp, pops[mnp_e_name],
+                 syn_spec={"weight": config["pg_mnp_weight"], "delay": config["pg_mnp_delay"]})
+
+
 # ---------------- SIMULATION ----------------
 nest.Simulate(config["simtime"])
 
@@ -108,14 +165,13 @@ for name in pops:
 print(f"weight_ipsi={config['weight_ipsi']}, p_conn={config['p_conn']}, delay_ipsi={config['delay_ipsi']}")
 
 
-
-def compute_metrics_LR(baseF, baseE, recorders, populations, simtime, binsz=20.0, thresh=10.0):
+def compute_metrics_LR(pop_base, recorders, populations, simtime, binsz, thresh):
     """
     Compute overlap, duty cycle, phase lag, and mean firing rate for
     left and right populations.
 
     Args:
-        baseF, baseE: base names of flexor/extensor populations, e.g., "RG_Flx_exc"
+        pop_base: base name of the population (e.g. "MNP_flx", "V2a_flx")
         recorders: dict of NEST spike recorders
         populations: config["populations"]
         simtime: total simulation time (ms)
@@ -126,62 +182,67 @@ def compute_metrics_LR(baseF, baseE, recorders, populations, simtime, binsz=20.0
         dict with keys 'L' and 'R', each containing the metric dict
     """
     results = {}
-    for side in ["L", "R"]:
-        recF_name = f"{baseF}_{side}"
-        recE_name = f"{baseE}_{side}"
+    bins = np.arange(0, simtime + binsz, binsz)
 
-        if recF_name not in recorders or recE_name not in recorders:
-            print(f"Warning: Recorders for {recF_name} or {recE_name} not found.")
+    for side in ["L", "R"]:
+        pop_name = f"{pop_base}_{side}"
+        if pop_name not in recorders:
+            print(f"Warning: Recorder for {pop_name} not found.")
             results[side] = None
             continue
 
-        recF = recorders[recF_name]
-        recE = recorders[recE_name]
+        rec = recorders[pop_name]
+        N = populations[pop_name]["size"]
 
-        Nf = populations[recF_name]["size"]
-        Ne = populations[recE_name]["size"]
+        ev = nest.GetStatus(rec, "events")[0]
+        times = np.array(ev["times"])
 
-        evF = nest.GetStatus(recF, "events")[0]; timesF = np.array(evF["times"])
-        evE = nest.GetStatus(recE, "events")[0]; timesE = np.array(evE["times"])
+        counts, _ = np.histogram(times, bins=bins)
+        rates = counts / (binsz/1000.0) / N
 
-        bins = np.arange(0, simtime + binsz, binsz)
-        cF, _ = np.histogram(timesF, bins=bins)
-        cE, _ = np.histogram(timesE, bins=bins)
-
-        rF = cF / (binsz/1000.0) / Nf
-        rE = cE / (binsz/1000.0) / Ne
-
-        both = (rF > thresh) & (rE > thresh)
-        overlap_frac = both.sum() / len(both)
-        dutyF = (rF > thresh).sum() / len(rF)
-        dutyE = (rE > thresh).sum() / len(rE)
-
-        # rough phase lag: cross-correlation peak lag in bins
-        xcorr = np.correlate((rF>thresh).astype(int)-0.5, (rE>thresh).astype(int)-0.5, mode='full')
-        lag_bins = np.argmax(xcorr) - (len(rF)-1)
-        lag_ms = lag_bins * binsz
+        active = rates > thresh
+        duty = active.sum() / len(rates)
 
         results[side] = {
-            "overlap": overlap_frac,
-            "dutyF": dutyF,
-            "dutyE": dutyE,
-            "lag_ms": lag_ms,
-            "meanF": rF.mean(),
-            "meanE": rE.mean()
+            "duty": duty,
+            "mean_rate": rates.mean(),
+            "trace": rates  # keep full time series for later analyses
         }
+
+    # If both sides exist, compute overlap + lag
+    if results.get("L") and results.get("R"):
+        rL = results["L"]["trace"] > thresh
+        rR = results["R"]["trace"] > thresh
+
+        both = rL & rR
+        overlap_frac = both.sum() / len(rL)
+
+        xcorr = np.correlate(rL.astype(int)-0.5, rR.astype(int)-0.5, mode='full')
+        lag_bins = np.argmax(xcorr) - (len(rL)-1)
+        lag_ms = lag_bins * binsz
+
+        results["L"]["overlap"] = overlap_frac
+        results["R"]["overlap"] = overlap_frac
+        results["L"]["lag_ms"] = lag_ms
+        results["R"]["lag_ms"] = -lag_ms  # signed opposite for symmetry
 
     return results
 
 
 # Call metric function 
-metrics = compute_metrics_LR("RG_Flx_exc", "RG_Ext_exc", recorders, config["populations"], config["simtime"], binsz=20.0, thresh=8.0)
+# metrics = compute_metrics_LR("RG_Flx_exc", "RG_Ext_exc", recorders, config["populations"], config["simtime"], binsz=20.0, thresh=8.0)
+# print("EXCITATORY LEFT metrics:", metrics["L"])
+# print("EXCITATORY RIGHT metrics:", metrics["R"])
 
-print("EXCITATORY LEFT metrics:", metrics["L"])
-print("EXCITATORY RIGHT metrics:", metrics["R"])
+# metrics = compute_metrics_LR("RG_Flx_inh", "RG_Ext_inh", recorders, config["populations"], config["simtime"], binsz=20.0, thresh=8.0)
+# print("INHIB LEFT metrics:", metrics["L"])
+# print("INHIB RIGHT metrics:", metrics["R"])
 
-metrics = compute_metrics_LR("RG_Flx_inh", "RG_Ext_inh", recorders, config["populations"], config["simtime"], binsz=20.0, thresh=8.0)
-print("INHIB LEFT metrics:", metrics["L"])
-print("INHIB RIGHT metrics:", metrics["R"])
+metrics_MNP_flx = compute_metrics_LR("MNP_flx", recorders, config["populations"], config["simtime"], 20.0, 8.0)
+print("MNP_FLX LEFT:", metrics_MNP_flx["L"])
+print("MNP_FLX RIGHT:", metrics_MNP_flx["R"])
+
+
 
 # ---------------- PLOTTING ----------------
 def get_times(rec):
@@ -259,5 +320,5 @@ def plot_population_rates(baseF, baseE, recorders, populations, simtime, side, s
 
 
 # ---------------- Generate plots ----------------
-plot_population_rates("RG_Flx_exc", "RG_Ext_exc", recorders, config["populations"], config["simtime"], side="L", save_dir=save_dir)
-plot_population_rates("RG_Flx_exc", "RG_Ext_exc", recorders, config["populations"], config["simtime"], side="R", save_dir=save_dir)
+plot_population_rates("MNP_flx", "MNP_ext", recorders, config["populations"], config["simtime"], side="L", save_dir=save_dir)
+plot_population_rates("MNP_flx", "MNP_ext", recorders, config["populations"], config["simtime"], side="R", save_dir=save_dir)
