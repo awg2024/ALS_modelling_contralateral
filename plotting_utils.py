@@ -25,7 +25,7 @@ from connect_populations import ConnectNetwork
 import population_functions as popfunc
 
 
-def plot_graphs(rg1, rg2, nn, popfunc, conn, calc, avg_rg1_peaks=None, avg_rg2_peaks=None, label=None):
+def plot_rg_graphs(rg1, rg2, nn, popfunc, conn, calc, avg_rg1_peaks=None, avg_rg2_peaks=None, label=None):
 
     """
     Simplified spike plotting function.
@@ -383,11 +383,13 @@ def plot_graphs(rg1, rg2, nn, popfunc, conn, calc, avg_rg1_peaks=None, avg_rg2_p
             ax.plot(t, rg2_convolved*rg2_scale)
             ax.legend(['RG_F', 'RG_E'],loc='upper right',fontsize='x-small') 
             ax.set_xlabel('Time (ms)')
+            #ax.set_xlim(0,2001)
             ax.set_xticks(xticks)
             ax.set_xticklabels([f'{int(x)}' for x in xticks])
             ax.set_ylabel('Freq (Hz)')
-            ax.set_title(f'{label} Hemisphere: Spike Rate')
-            if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'spike_rate_isolated_rgs.pdf',bbox_inches="tight")
+            ax.set_ylim(0,200)
+            ax.set_title(f'{label} Hemisphere: Isolated RG')
+            if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + f'{label}-Isolated-HalfCentre.pdf',bbox_inches="tight")
         if nn.rgs_connected==1:
             t = convolved_time
             xticks = np.arange(start=np.ceil(t[0] / 1000) * 1000, stop=t[-1], step=1000)
@@ -403,9 +405,11 @@ def plot_graphs(rg1, rg2, nn, popfunc, conn, calc, avg_rg1_peaks=None, avg_rg2_p
             ax[1].set_xticks(xticks)
             ax[1].set_xticklabels([f'{int(x)}' for x in xticks])
             ax[0].set_ylabel('Freq (Hz)')
+            ax[0].set_ylim(0, 200)
+            ax[1].set_ylim(0, 200)
             ax[1].set_ylabel('Freq (Hz)')
             ax[0].set_title('Average Spike Rate')
-            if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'spike_rate_rg_v1v2b.pdf',bbox_inches="tight")
+            if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + f'{label}-Connected_RGs.pdf',bbox_inches="tight")
         
     if nn.args['save_results']:
         # Save rate-coded output

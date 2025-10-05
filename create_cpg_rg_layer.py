@@ -47,6 +47,35 @@ L_rg2 = ext_rg.create_rg_population()  # Left Extensor
 R_rg1 = flx_rg.create_rg_population()  # Right Flexor
 R_rg2 = ext_rg.create_rg_population()  # Right Extensor
 
+
+if nn.rgs_connected == 0:
+    # Each side = independent half-centre (flexor ↔ extensor)
+    
+    for src in [L_rg1.rg_exc_bursting, L_rg1.rg_exc_tonic]:
+          # custom_rg_rg would refer to self.custom_rg_rg on params. 
+        for tgt in [L_rg2.rg_exc_bursting, L_rg2.rg_exc_tonic]:
+            conn.create_connections(src, tgt, 'custom_rg_rg')
+    for src in [L_rg2.rg_exc_bursting, L_rg2.rg_exc_tonic]:
+        for tgt in [L_rg1.rg_exc_bursting, L_rg1.rg_exc_tonic]:
+            conn.create_connections(src, tgt, 'custom_rg_rg')
+            
+    for src in [R_rg1.rg_exc_bursting, R_rg1.rg_exc_tonic]:
+        for tgt in [R_rg2.rg_exc_bursting, R_rg2.rg_exc_tonic]:
+            conn.create_connections(src, tgt, 'custom_rg_rg')
+    for src in [R_rg2.rg_exc_bursting, R_rg2.rg_exc_tonic]:
+        for tgt in [R_rg1.rg_exc_bursting, R_rg1.rg_exc_tonic]:
+            conn.create_connections(src, tgt, 'custom_rg_rg')
+
+    print("--------------------------------------------------------")
+    print("RG - flx exc count")
+    print(nn.flx_exc_bursting_count, nn.ext_exc_bursting_count)
+    print("RG - flx inib count")
+    print(nn.flx_inh_bursting_count, nn.ext_inh_bursting_count)
+    print("--------------------------------------------------------")
+
+
+
+
 if nn.rgs_connected == 1:
     # Create inhibitory interneuron populations for both sides
     L_inh_V2b = inh.create_inh_inter_population('V2b')  # Left V2b
@@ -125,7 +154,7 @@ print('Simulation completed. It took ',round(t_stop-t_start,2),' seconds.')
 
 
 # LEFT network
-pu.plot_graphs(L_rg1, L_rg2, nn, popfunc, conn, calc, label="Left")
+pu.plot_rg_graphs(L_rg1, L_rg2, nn, popfunc, conn, calc, label="Left")
 
 # RIGHT network
-pu.plot_graphs(R_rg1, R_rg2, nn, popfunc, conn, calc, label="Right")
+pu.plot_rg_graphs(R_rg1, R_rg2, nn, popfunc, conn, calc, label="Right")

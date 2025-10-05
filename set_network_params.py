@@ -37,19 +37,20 @@ class neural_network():
         #RG layer connectivity
         self.sparsity_rg_v2b = 0.5 
         self.sparsity_v2b_rg = 0.5 
-        self.sparsity_rg_v1 = 0.5
+        self.sparsity_rg_v1 = 0.5 
         self.sparsity_v1_rg = 0.5
         self.sparsity_v1s_outside_rg_layer = 0.28 
         
-        self.current_multiplier_bursting_flx = 1.5 #Use this to change network output frequency
-        self.current_multiplier_tonic_flx = 1.5
+        self.current_multiplier_bursting_flx = 1.0 #Use this to change network output frequency
+        self.current_multiplier_tonic_flx = 1.0
 
-        self.current_multiplier_bursting_ext = 6.0 #Use this to change ext MN firing rate, increased input = increased firing 
-        self.current_multiplier_tonic_ext = 6.0 
-   
+        self.current_multiplier_bursting_ext = 3.0 #Use this to change ext MN firing rate, increased input = increased firing 
+        self.current_multiplier_tonic_ext = 3.0     # OLD SITTING, at 75hz comp to Beck's model of 100hz due to cond_alpha? 
+
+
         self.v2b_current_multiplier = 0.38 #Use this to reduce initial bump in RG ext output 
         self.v1_current_multiplier = 0.3 #Use this to change ext MNP BD, increased input = increased width 
-        self.inh_weight_multiplier = 1
+        self.inh_weight_multiplier = 1  
         self.exc_weight_multiplier = 2 
 
         if days==0:
@@ -197,7 +198,7 @@ class neural_network():
         self.w_custom_rg_rg_std = 0.01
         self.w_custom_rg_v2b_mean= 0.3      
         self.w_custom_rg_v2b_std= 0.01
-        self.w_custom_v2b_rg_mean= -0.02   
+        self.w_custom_v2b_rg_mean= -0.2      
         self.w_custom_v2b_rg_std= .01
         self.w_custom_rg_v1_mean= 0.3      
         self.w_custom_rg_v1_std= 0.01
@@ -252,8 +253,7 @@ class neural_network():
         self.sparsity_custom_v2a_mn = 0.5 #0.5       
         self.sparsity_custom_mn_rc = 0.5 #0.5
         self.selfexc_flx = 0.5  #Increase self-connectivity to produce oscillation with less neurons
-        self.selfexc_ext = 0.7
-        
+        self.selfexc_ext = 0.2  
         #Rise and decay times for synapses
         inh_syn_multiplier = 1 if args['slow_syn_dyn']==0 else 1.6 
         exc_syn_multiplier = 1 if args['slow_syn_dyn']==0 else 1.6 
@@ -265,16 +265,21 @@ class neural_network():
         self.tau_syn_i_decay = 20.0
         self.tau_syn_i_rise_mn = 0.5 * inh_syn_multiplier #set Inh tau for effect from RCs, 1as to MNs 
         self.tau_syn_i_decay_mn = 20.0 * inh_syn_multiplier #set Inh tau for effect from RCs, 1as to MNs
+        # print('Excitatory synaptic rise/decay (RC)',self.tau_syn_e_rise_rc,self.tau_syn_e_decay_rc)
+        # print('Inhibitory synaptic rise/decay (MN)',self.tau_syn_i_rise_mn,self.tau_syn_i_decay_mn)
+        
+        
 
-            #print('Excitatory synaptic rise/decay (RC)',self.tau_syn_e_rise_rc,self.tau_syn_e_decay_rc)
-            #print('Inhibitory synaptic rise/decay (MN)',self.tau_syn_i_rise_mn,self.tau_syn_i_decay_mn)
-        print('----------------------------------------------------------------------------------')
         # aeif_cond_alpha params for time constant - represents both rise and decay - crude geometric-mean heuristic
         self.tau_syn_ex = (self.tau_syn_e_rise * self.tau_syn_e_decay)**0.5
         self.tau_syn_in  = (self.tau_syn_i_rise * self.tau_syn_i_decay)**0.5
 
         print('Excitatory time constant',self.tau_syn_ex)
         print('Inhibititory time constant',self.tau_syn_in)
+
+
+    
+        
         
         #Shared population characteristics across timepoints and frequencies
         self.rg_pop_neurons= 1000   #1000
@@ -437,4 +442,3 @@ class neural_network():
             #args['seed'] = simulation_config['seed']
             yaml.dump(args, yamlfile)
       
-
