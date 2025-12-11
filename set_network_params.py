@@ -248,7 +248,9 @@ class neural_network():
         self.w_custom_v2a_mn_std = 0.12*self.exc_weight_multiplier         
         self.w_custom_v2a_selfexc_mean = 0.5*self.exc_weight_multiplier    
         self.w_custom_v2a_selfexc_std = 0.12*self.exc_weight_multiplier
-        
+        self.w_custom_v0v_v1_mean = 2*self.exc_weight_multiplier
+        self.w_custom_v0v_v1_std = 2*self.exc_weight_multiplier
+
         # v0d inhibiting rg 
         self.w_custom_v0d_rg_inh_mean = 2*self.inh_weight_multiplier
         self.w_custom_v0d_rg_inh_std = 2*self.inh_weight_multiplier
@@ -290,6 +292,7 @@ class neural_network():
         self.sparsity_custom_mn_rc = 0.5 #0.5
         self.sparsity_custom_v0c_mnp_flx = 0.5
         self.sparsity_custom_v0c_mnp_ext = 0.5 
+        self.sparsity_custom_v0v_v1 = 0.5 
     
 
         
@@ -477,6 +480,7 @@ class neural_network():
         self.conn_dict_custom_rc_rc = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_rc_rc}
         self.conn_dict_custom_rc_mn = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_rc_mn}
         self.conn_dict_custom_mn_rc = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_mn_rc}
+        self.conn_dict_custom_v0v_v1 = {'rule': 'pairwise_bernoulli', 'p':self.sparsity_custom_v0v_v1}
        
        # contralateral DICT! V0d    
         self.conn_dict_custom_rg_v0d = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_rg_v0d}
@@ -511,10 +515,4 @@ class neural_network():
             id_ = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         path = 'saved_simulations' + '/' + 'P'+str(days)+'_D'+str(freq_test) + '/' + id_ 
         pathFigures = 'saved_simulations' + '/' + 'P'+str(days)+'_D'+str(freq_test) + '/' + id_ + '/Figures'
-        pathlib.Path(path).mkdir(parents=True, exist_ok=False)
-        pathlib.Path(pathFigures).mkdir(parents=True, exist_ok=False)
-        with open(path + '/args_' + id_ + '.yaml', 'w') as yamlfile:
-            #args['seed'] = simulation_config['seed']
-            yaml.dump(args, yamlfile)
-      
-
+        pathlib.Path(path).mkdir(pa

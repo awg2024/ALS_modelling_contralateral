@@ -117,6 +117,8 @@ if nn.remove_descending_drive==0:
     L_V0C_1.create_commissural_population(pop_type='V0C',self_connection='none',firing_behavior='tonic',pop_size=nn.v0c_pop_size,input_type='descending')
     L_V0C_2.create_commissural_population(pop_type='V0C',self_connection='none',firing_behavior='tonic',pop_size=nn.v0c_pop_size,input_type='descending')
     
+
+
     L_V1a_1.create_interneuron_population(pop_type='V1a_1',self_connection='none',firing_behavior='tonic',pop_size=nn.v1a_pop_size,input_type='sensory_feedback')
     L_V1a_2.create_interneuron_population(pop_type='V1a_2',self_connection='none',firing_behavior='tonic',pop_size=nn.v1a_pop_size,input_type='sensory_feedback')
 
@@ -290,8 +292,6 @@ if nn.rgs_connected == 1:
          # tonic v0d to contralateral rg tonic 
         conn.create_connections(L_V0D.v0d_tonic, R_rg1.rg_exc_tonic, 'custom_v0d_rg_inh')
 
-   
-
     # =======================================================
     # V0V CONTRALATERAL CODE BELOW
     # V0v bursting at high locomotion and tonic at low locomotion 
@@ -303,24 +303,38 @@ if nn.rgs_connected == 1:
 
         print("Creating connections for LEFT V0v - LOW LOCOMOTION ")
         
+        # L_rg1 tonic input to L_V2a tonic. 
         conn.create_connections(L_rg1.rg_exc_tonic, L_exc1.exc_inter_tonic, 'custom_rg_v2a')
+        
         # tonic V0V receives tonic V2a (low frequency mode)
         conn.create_connections(L_exc1.exc_inter_tonic, L_V0V.v0v_tonic, 'custom_v2a_v0v')
 
-        # tonic V0V inhibits contralateral bursting RG (low frequency)
-        conn.create_connections(L_V0V.v0v_tonic, R_rg1.rg_exc_bursting, 'custom_v0v_rg_inh')
+        # tonic V0V excites V1 
+        conn.create_connections(L_V0V.v0v_tonic, L_inh2.inh_inter_tonic, 'custom_v0v_v1')
 
-    
+        # V1 inhibits the RG_flx 
+        conn.create(L_inh2.inh_inter_tonic, R_rg1.rg_exc_tonic,  'custom_v1_rg')
+
+
     if nn.high_locomotion_v0v_left == 1: 
 
         print("Creating connections for LEFT V0v - HIGH LOCOMOTION")
 
-          # bursting V0V receives bursting V2a (high frequency mode)
-        conn.create_connections(L_exc1_burst.interneuron_pop, L_V0V.v0v_bursting, 'custom_v2a_v0v')
+        # L_rg1 bursting input to L_V2a bursting. 
+        conn.create_connections(L_rg1.rg_exc_bursting, L_exc1.exc_inter_burst, 'custom_rg_v2a')
+        
+        # bursting V0V receives tonic V2a (low frequency mode)
+        conn.create_connections(L_exc1.exc_inter_burst, L_V0V.v0v_bursting, 'custom_v2a_v0v')
 
-        # bursting V0V inhibits contralateral tonic RG (high frequency)
-        conn.create_connections(L_V0V.v0v_bursting, R_rg1.rg_exc_tonic, 'custom_v0v_rg_inh')
-    
+        # tonic V0V excites V1 
+        conn.create_connections(L_V0V.v0v_bursting, L_inh2.inh_inter_bursting, 'custom_v0v_v1')
+
+        # V1 inhibits the RG_flx 
+        conn.create(L_inh2.inh_inter_bursting, R_rg1.rg_exc_bursting,  'custom_v1_rg')
+        
+
+        
+        
     
   
   # ================================ END OF LEFT SIDE CPG CODE ==========================================================
@@ -523,25 +537,37 @@ if nn.rgs_connected == 1:
 
         print("Creating connections for RIGHT V0v - LOW LOCOMOTION ")
 
+         # L_rg1 tonic input to L_V2a tonic. 
         conn.create_connections(R_rg1.rg_exc_tonic, R_exc1.exc_inter_tonic, 'custom_rg_v2a')
-
+        
         # tonic V0V receives tonic V2a (low frequency mode)
         conn.create_connections(R_exc1.exc_inter_tonic, R_V0V.v0v_tonic, 'custom_v2a_v0v')
 
-        # tonic V0V inhibits contralateral bursting RG (low frequency)
-        conn.create_connections(R_V0V.v0v_tonic, L_rg1.rg_exc_bursting, 'custom_v0v_rg_inh')
+        # tonic V0V excites V1 
+        conn.create_connections(R_V0V.v0v_tonic, R_inh2.inh_inter_tonic, 'custom_v0v_v1')
+
+        # V1 inhibits the RG_flx 
+        conn.create(R_inh2.inh_inter_tonic, L_rg1.rg_exc_tonic,  'custom_v1_rg')
+
 
     if nn.high_locomotion_v0v_right == 1: 
 
         print("Creating connections for RIGHT V0v - HIGH LOCOMOTION")
 
 
-        # bursting V0V receives tonic V2a (high frequency mode)
-        conn.create_connections(R_exc1_burst.interneuron_pop, R_V0V.v0v_bursting, 'custom_v2a_v0v')
+                # L_rg1 bursting input to L_V2a bursting. 
+        conn.create_connections(R_rg1.rg_exc_bursting, R_exc1.exc_inter_burst, 'custom_rg_v2a')
+        
+        # bursting V0V receives tonic V2a (low frequency mode)
+        conn.create_connections(R_exc1.exc_inter_burst, R_V0V.v0v_bursting, 'custom_v2a_v0v')
 
-        # bursting V0V inhibits contralateral tonic RG (high frequency)
-        conn.create_connections(R_V0V.v0v_bursting, R_exc1_burst.interneuron_pop, 'custom_v0v_rg_inh')
-    
+        # tonic V0V excites V1 
+        conn.create_connections(R_V0V.v0v_bursting, R_inh2.inh_inter_bursting, 'custom_v0v_v1')
+
+        # V1 inhibits the RG_flx 
+        conn.create(R_inh2.inh_inter_bursting, L_rg1.rg_exc_bursting,  'custom_v1_rg')
+
+
     # 1 - FLX
     # 2 - EXT
     R_V0C_1.create_commissural_population(pop_type='V0C', self_connection='none', firing_behavior='tonic', pop_size=nn.v0v_pop_size, input_type='none')

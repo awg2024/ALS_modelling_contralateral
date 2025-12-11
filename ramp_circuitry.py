@@ -35,7 +35,7 @@ import create_commissural_pop as commissural
 import create_mnp as mnp
 import calculate_stability_metrics as calc
 import send_receive_feedback as interface_fb
-from cpg_data_utils import cpg_utils
+from ramp_cpg_utils import cpg_utils
 
 
 # =====================================================================
