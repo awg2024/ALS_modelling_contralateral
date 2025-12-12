@@ -23,19 +23,22 @@ netparams = neural_network()
 class commissural_population:
     def __init__(self):
         # Separate stores for each commissural type
-        self.v0d_tonic = None
-        self.v0d_bursting = None
-        self.v0v_tonic = None
-        self.v0v_bursting = None
-        self.v0c_tonic = None
-        self.v0c_bursting = None
+        self.v0d_tonic = []
+        self.v0d_bursting = []
+        self.v0v_tonic = []
+        self.v0v_bursting = []
+        self.v0c_tonic = []
+        self.v0c_bursting = []
 
-        # Generic bookkeeping
+        self.v0d_all = []
+        self.v0v_all = []
+        self.v0c_all = []
+
+        # monitors
         self.spike_detectors = []
         self.multimeters = []
         self.noise_generators = []
 
-        # Convenience pointers (backward compatible)
         self.spike_detector = None
         self.multimeter = None
         self.noise_generator = None
@@ -128,6 +131,19 @@ class commissural_population:
                 self.v0c_tonic = neurons
             else:
                 self.v0c_bursting = neurons
+
+        # Maintain full population list as Python list of GIDs
+
+        if pop_type == "V0D":
+            self.v0d_all = list(self.v0d_tonic) + list(self.v0d_bursting)
+
+        elif pop_type == "V0V":
+            self.v0v_all = list(self.v0v_tonic) + list(self.v0v_bursting)
+
+        elif pop_type == "V0C":
+            self.v0c_all = list(self.v0c_tonic) + list(self.v0c_bursting)
+
+
 
         # --- Self-connections ---
         if self_connection in ["inh", "exc"]:

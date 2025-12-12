@@ -24,7 +24,7 @@ class nest_start():
         nest.ResetKernel()
         nest.Install("nestml_aeif_cond_beta_module")
 
-        # adjusted for jeeves 2.5 to see what's optimum? 
+        # optimum CPU threads: 16 4.95 s for 500ms. 
         nest.SetKernelStatus({"local_num_threads":16})
         
         nest.SetKernelStatus({"resolution":nn.time_resolution})
