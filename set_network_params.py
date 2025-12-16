@@ -65,6 +65,7 @@ class neural_network():
             self.sparsity_custom_rc_v1a = self.sparsity_v1s_outside_rg_layer 
             self.sparsity_custom_rc_rc = self.sparsity_v1s_outside_rg_layer
             self.sparsity_custom_v1a_v1a = self.sparsity_v1s_outside_rg_layer 
+            self.sparsity_custom_v0v_v1_contra = 0.5 
 
             #V1 synaptic strength
             self.w_1a_multiplier = 1  
@@ -214,6 +215,9 @@ class neural_network():
         self.w_custom_rg_v1_std= 0.01
         self.w_custom_v1_rg_mean= -0.1*self.w_v1_multiplier if compensation == 1 else -0.1
         self.w_custom_v1_rg_std= .01
+
+        self.w_custom_v1_rg_mean_contra_mean = 1.5 * self.inh_weight_multiplier
+        self.w_custom_inh_weight_multiplier_contra_std = 1.5 * self.inh_weight_multiplier
         
         #Params for interneurons downstream of RG layer
         self.w_custom_rg_v1a_mean = 1.05*self.exc_weight_multiplier    
@@ -256,15 +260,12 @@ class neural_network():
         self.w_custom_v0d_rg_inh_std = 2*self.inh_weight_multiplier
         
         # rg exciting the v0d 
-        self.w_custom_rg_v0d_mean =  2*self.exc_weight_multiplier
-        self.w_custom_rg_v0d_std =  2*self.exc_weight_multiplier
-
-        self.w_custom_v0d_rg_inh_mean = 2*self.inh_weight_multiplier
-        self.w_custom_v0d_rg_inh_std =  2*self.exc_weight_multiplier
+        self.w_custom_rg_v0d_mean =  8*self.exc_weight_multiplier
+        self.w_custom_rg_v0d_std = 8*self.exc_weight_multiplier
 
         # v2a exciting v0v 
-        self.w_custom_v2a_v0v_mean =  2*self.exc_weight_multiplier
-        self.w_custom_v2a_v0v_std =  2*self.exc_weight_multiplier
+        self.w_custom_v2a_v0v_mean =  1.5*self.exc_weight_multiplier
+        self.w_custom_v2a_v0v_std =  1.5*self.exc_weight_multiplier
 
         # v0v inhibiting rg inhib flex. 
         self.w_custom_v0v_rg_inh_mean = 1.5*self.inh_weight_multiplier  
@@ -424,6 +425,7 @@ class neural_network():
         self.fb_1a_flx = args['fb_1a_flx']
         self.fb_1a_ext = args['fb_1a_ext']
         self.sim_fb_freq = args['sim_fb_freq']
+        
        
         print('Running freq test ',freq_test,', Mean desc current (T,B), Mean fb current (T,B): ',self.I_e_tonic_mean,self.I_e_bursting_mean,self.I_fb_tonic_mean,self.I_fb_bursting_mean)
         self.I_e_bursting_std = 0.25*self.I_e_bursting_mean #pA 
@@ -451,6 +453,7 @@ class neural_network():
         self.isf_output = args['isf_output']
         self.time_window = args['smoothing_window']
         self.phase_ordered_plot = args['phase_ordered_plot']
+        self.heatmap_recruitment = args['heatmap_recruitment']
 
         #Set spike detector parameters 
         self.sd_params = {"withtime" : True, "withgid" : True, 'to_file' : False, 'flush_after_simulate' : False, 'flush_records' : True}
@@ -481,6 +484,7 @@ class neural_network():
         self.conn_dict_custom_rc_mn = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_rc_mn}
         self.conn_dict_custom_mn_rc = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_mn_rc}
         self.conn_dict_custom_v0v_v1 = {'rule': 'pairwise_bernoulli', 'p':self.sparsity_custom_v0v_v1}
+        self.conn_dict_custom_v1_rg_contra = {'rule': 'pairwise_bernoulli', 'p':self.sparsity_custom_v0v_v1_contra}
        
        # contralateral DICT! V0d    
         self.conn_dict_custom_rg_v0d = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_rg_v0d}
@@ -515,4 +519,10 @@ class neural_network():
             id_ = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         path = 'saved_simulations' + '/' + 'P'+str(days)+'_D'+str(freq_test) + '/' + id_ 
         pathFigures = 'saved_simulations' + '/' + 'P'+str(days)+'_D'+str(freq_test) + '/' + id_ + '/Figures'
-        pathlib.Path(path).mkdir(pa
+        pathlib.Path(path).mkdir(parents=True, exist_ok=False)
+        pathlib.Path(pathFigures).mkdir(parents=True, exist_ok=False)
+        with open(path + '/args_' + id_ + '.yaml', 'w') as yamlfile:
+            #args['seed'] = simulation_config['seed']
+            yaml.dump(args, yamlfile)
+      
+

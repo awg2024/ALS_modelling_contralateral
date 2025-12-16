@@ -933,9 +933,6 @@ def cpg_utils(nn,
 
             plt.close()
 
-        # ============================================================
-        # =========== GENERATE SEPARATE HEATMAPS FOR V0 POPS =========
-        # ============================================================
 
         # Only generate maps if the model flags indicate these populations exist
         if nn.args['low_locomotion_v0d_left']:

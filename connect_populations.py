@@ -247,4 +247,8 @@ class ConnectNetwork():
             if source in self.sender_counts:
                 weighted_weight = self.weights_by_source[source] * self.sender_counts[source]
             else:
-                weighted_weig
+                weighted_weight = 0
+            self.total_weight += weighted_weight
+        #self.total_weight = self.total_weight*2 if self.total_weight < 0 else self.total_weight*.2
+        self.total_weight = self.total_weight*2.9 if self.total_weight < 0 else self.total_weight
+        return round(self.total_weight,2) 

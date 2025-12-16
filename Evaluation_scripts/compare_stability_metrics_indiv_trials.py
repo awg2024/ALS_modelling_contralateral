@@ -270,6 +270,18 @@ def main():
 
     folder_containing_data = sys.argv[1]
 
+    # Optional P and D arguments
+    P_value = sys.argv[2] if len(sys.argv) > 2 else None
+    D_value = sys.argv[3] if len(sys.argv) > 3 else None
+
+    # Construct folders list dynamically
+    if P_value is not None and D_value is not None:
+        folders = [os.path.join(folder_containing_data, f"{P_value}_{D_value}")]
+    else:
+        folders = [folder_containing_data]
+
+    print(f"Processing folders: {folders}")
+
     # Allow the script to work even if only one argument is passed
     if len(sys.argv) > 2:
         compare_trials = sys.argv[2]

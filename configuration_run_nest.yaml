@@ -32,11 +32,11 @@ v2a_mn_intact: 0 #Use 1 to preserve V2a and MN populations at P112
 # LOW LOCOMOTION - CONTRALATERAL PROJECTIONS  
 # connections of v0d - being excited by RG_Flx and inhibiting OPPOSITE RG_FLX 
 # connections of v0v - RG_F exciting V2a. V2a exciting V0v. V0v contralaterally projecting and inhibiting inhib RG_Flx 
-low_locomotion_v0d_right: 0
-low_locomotion_v0d_left: 0
+low_locomotion_v0d_right: 1
+low_locomotion_v0d_left: 1
 
-low_locomotion_v0v_right: 1
-low_locomotion_v0v_left: 1
+low_locomotion_v0v_right: 0
+low_locomotion_v0v_left: 0
 
 # ======================
 
@@ -47,14 +47,14 @@ low_locomotion_v0v_left: 1
 high_locomotion_v0d_right: 0
 high_locomotion_v0d_left: 0
 
-high_locomotion_v0v_right: 0 
+high_locomotion_v0v_right: 0
 high_locomotion_v0v_left: 0
 # ======================
 
 
 # ======================
-contralateral_projections_v0c_right: 1 # use 1 to create connections of v0c - flx to flx mnp , ext to ext mnp 
-contralateral_projections_v0c_left: 1  # use 1 to create connections of v0c - flx to flx mnp , ext to ext mnp 
+contralateral_projections_v0c_right: 0 # use 1 to create connections of v0c - flx to flx mnp , ext to ext mnp 
+contralateral_projections_v0c_left: 0  # use 1 to create connections of v0c - flx to flx mnp , ext to ext mnp 
 
 
 
@@ -66,10 +66,12 @@ contralateral_projections_v0c_left: 1  # use 1 to create connections of v0c - fl
 # ======================
 
 
-
 ramp_experimental_v0v_weights: 0 # manipualting both v0v left and right weights viewing associated change. 
 
 ramp_experimental_v0d_weights: 0 # manipualting both v0d left and right weights viewing associated change. 
+
+
+heatmap_recruitment: 1
 
 
 #Data analysis parameters
@@ -94,4 +96,5 @@ phase_ordered_plot: 1
 raster_plot: 0
 rate_coded_plot: 1
 spike_distribution_plot: 0
+
 
