@@ -122,7 +122,7 @@ class ConnectNetwork():
                 'syn_params': create_synapse_params(netparams.w_custom_v0c_mn_mean, netparams.w_custom_v0c_mn_std, netparams.synaptic_delay),
                 'sparsity': 'sparsity_custom_v0c_mn'
             },
-            'custom_rg_v2a': {
+            'custom_rg_v2a': { 
                 'conn_dict': 'conn_dict_custom_rg_v2a',
                 'syn_params': create_synapse_params(netparams.w_custom_rg_v2a_mean, netparams.w_custom_rg_v2a_std, netparams.synaptic_delay),
                 'sparsity': 'sparsity_custom_rg_v2a'
@@ -167,11 +167,20 @@ class ConnectNetwork():
                 'syn_params': create_synapse_params(netparams.w_custom_v0c_mnp_ext_mean, netparams.w_custom_v0c_mnp_ext_std, netparams.synaptic_delay),
                 'sparsity': 'sparsity_custom_v0c_mnp_ext'
             },
-            'custom_v0v_v1': {
+            'custom_v0v_v1': { #COMMISSURAL V0V
                 'conn_dict': 'conn_dict_custom_v0v_v1',
                 'syn_params': create_synapse_params(netparams.w_custom_v0v_v1_mean, netparams.w_custom_v0v_v1_std, netparams.synaptic_delay),
                 'sparsity': 'sparsity_custom_v0v_v1'
-
+            },
+            'custom_rg_v2a_v0vconn': {
+                'conn_dict': 'conn_dict_custom_rg_v2a_v0vconn', 
+                'syn_params': create_synapse_params(netparams.w_custom_rg_v2a_v0vconn_mean, netparams.w_custom_rg_v2a_v0vconn_std, netparams.synaptic_delay),
+                'sparsity': 'sparsity_custom_rg_v2a_v0vconn'
+            },
+            'custom_v1_rg_v0vconn': {
+                'conn_dict': 'conn_dict_custom_v1_rg_v0vconn',
+                'syn_params': create_synapse_params(netparams.w_custom_v1_rg_v0vconn_mean, netparams.w_custom_v1_rg_v0vconn_std, netparams.synaptic_delay),
+                'sparsity': 'sparsity_custom_v1_rg_v0vconn'
             }
         }
       
@@ -247,4 +256,8 @@ class ConnectNetwork():
             if source in self.sender_counts:
                 weighted_weight = self.weights_by_source[source] * self.sender_counts[source]
             else:
-                weighted_weight
+                weighted_weight = 0
+            self.total_weight += weighted_weight
+        #self.total_weight = self.total_weight*2 if self.total_weight < 0 else self.total_weight*.2
+        self.total_weight = self.total_weight*2.9 if self.total_weight < 0 else self.total_weight
+        return round(self.total_weight,2) 

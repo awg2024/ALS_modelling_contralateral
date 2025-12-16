@@ -32,11 +32,11 @@ v2a_mn_intact: 0 #Use 1 to preserve V2a and MN populations at P112
 # LOW LOCOMOTION - CONTRALATERAL PROJECTIONS  
 # connections of v0d - being excited by RG_Flx and inhibiting OPPOSITE RG_FLX 
 # connections of v0v - RG_F exciting V2a. V2a exciting V0v. V0v contralaterally projecting and inhibiting inhib RG_Flx 
-low_locomotion_v0d_right: 1
-low_locomotion_v0d_left: 1
+low_locomotion_v0d_right: 0
+low_locomotion_v0d_left: 0
 
-low_locomotion_v0v_right: 0
-low_locomotion_v0v_left: 0
+low_locomotion_v0v_right: 1
+low_locomotion_v0v_left: 1
 
 # ======================
 
@@ -44,30 +44,32 @@ low_locomotion_v0v_left: 0
 # HIGH LOCOMOTION - CONTRALATERAL PROJECTIONS  
 # connections of v0d - being excited by RG_Flx and inhibiting OPPOSITE RG_FLX 
 # connections of v0v - RG_F exciting V2a. V2a exciting V0v. V0v contralaterally projecting and inhibiting inhib RG_Flx 
-high_locomotion_v0d_right: 1
-high_locomotion_v0d_left: 1
 
+# V0D SUBPOPULATION
+high_locomotion_v0d_right: 0
+high_locomotion_v0d_left: 0
+# ======================
+
+# V0V SUBPOPULATION
 high_locomotion_v0v_right: 0 
 high_locomotion_v0v_left: 0
 # ======================
 
 
-# ======================
+# V0C PROJECTIONS 
 contralateral_projections_v0c_right: 0 # use 1 to create connections of v0c - flx to flx mnp , ext to ext mnp 
 contralateral_projections_v0c_left: 0  # use 1 to create connections of v0c - flx to flx mnp , ext to ext mnp 
+# ======================
 
-
-
-# #contralateral_projections_v3_flx_left: 0 # use 1 to create connections of v3 flx - left RG_flx exciting V3_flx. V3_flx then excites Right RG_flx 
+# V3 PROPJECTIONS 
+#contralateral_projections_v3_flx_left: 0 # use 1 to create connections of v3 flx - left RG_flx exciting V3_flx. V3_flx then excites Right RG_flx 
 #contralateral_projections_v3_ext_left: 0 # use 1 to create connections of v3 ext - left RG_ext exciting V3_ext. V3_ext then excites Right RG_ext 
-
 #contralateral_projections_v3_flx_right: 0 # use 1 to create connections of v3 flx - right RG_flx exciting V3_flx. V3_flx then excites left RG_flx 
 #contralateral_projections_v3_ext_right: 0 # use 1 to create connections of v3 flx - right RG_flx exciting V3_flx. V3_flx then excites left RG_flx 
 # ======================
 
 ramp_experimental_v0v_weights: 0 # manipualting both v0v left and right weights viewing associated change. 
-
-ramp_experimental_v0d_weights: 1 # manipualting both v0d left and right weights viewing associated change. 
+ramp_experimental_v0d_weights: 0 # manipualting both v0d left and right weights viewing associated change. 
 
 
 #Data analysis parameters
@@ -84,7 +86,8 @@ save_all_pops: 0 #Use 1 to save spike data from all neural populations, use 0 to
 save_results: 1
 smoothing_window: 50 #Ex. 50: 50*0.1=5ms time window
 sync_regularity: 0
-#Plot selection
+
+# Plot selection
 isf_output: 1
 membrane_potential_plot: 1
 pca_plot: 1
@@ -92,4 +95,5 @@ phase_ordered_plot: 1
 raster_plot: 0
 rate_coded_plot: 1
 spike_distribution_plot: 0
+heatmap_recruitment_plot: 0
 

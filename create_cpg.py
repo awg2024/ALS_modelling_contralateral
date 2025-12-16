@@ -221,6 +221,7 @@ conn.create_connections(L_mnp2.motor_neuron_pop, L_rc_2.interneuron_pop,'custom_
 
 if nn.rgs_connected == 1:
     L_inh1 = inh.create_inh_inter_population('V2b')  # V2b
+    
     L_inh2 = inh.create_inh_inter_population('V1')  # V1
 
     # Connect excitatory rg neurons to V1/V2b inhibitory populations
@@ -303,8 +304,8 @@ if nn.rgs_connected == 1:
 
         print("Creating connections for LEFT V0v - LOW LOCOMOTION ")
         
-        # L_rg1 tonic input to L_V2a tonic. 
-        conn.create_connections(L_rg1.rg_exc_tonic, L_exc1.exc_inter_tonic, 'custom_rg_v2a')
+        # CONNECTION UNO: L_rg1 tonic input to L_V2a tonic 
+        # Since this is already a connection made by the network i don't need to connect them up again here. 
         
         # tonic V0V receives tonic V2a (low frequency mode)
         conn.create_connections(L_exc1.exc_inter_tonic, L_V0V.v0v_tonic, 'custom_v2a_v0v')
@@ -313,7 +314,7 @@ if nn.rgs_connected == 1:
         conn.create_connections(L_V0V.v0v_tonic, L_inh2.inh_inter_tonic, 'custom_v0v_v1')
 
         # V1 inhibits the RG_flx 
-        conn.create(L_inh2.inh_inter_tonic, R_rg1.rg_exc_tonic,  'custom_v1_rg')
+        conn.create_connections(L_inh2.inh_inter_tonic, R_rg1.rg_exc_tonic, 'custom_v1_rg_contra')
 
 
     if nn.high_locomotion_v0v_left == 1: 
@@ -333,9 +334,6 @@ if nn.rgs_connected == 1:
         conn.create(L_inh2.inh_inter_bursting, R_rg1.rg_exc_bursting,  'custom_v1_rg')
         
 
-        
-        
-    
   
   # ================================ END OF LEFT SIDE CPG CODE ==========================================================
 
@@ -537,8 +535,10 @@ if nn.rgs_connected == 1:
 
         print("Creating connections for RIGHT V0v - LOW LOCOMOTION ")
 
-         # L_rg1 tonic input to L_V2a tonic. 
-        conn.create_connections(R_rg1.rg_exc_tonic, R_exc1.exc_inter_tonic, 'custom_rg_v2a')
+        # CONNECTION UNO: L_rg1 tonic input to L_V2a tonic. 
+        # Here in certain connections they overlap with the previous unilateral architecture therefore we design weights XXX_v0vconn so we have a difference. 
+
+        conn.create_connections(R_rg1.rg_exc_tonic, R_exc1.exc_inter_tonic, 'custom_rg_v2a_v0vconn')
         
         # tonic V0V receives tonic V2a (low frequency mode)
         conn.create_connections(R_exc1.exc_inter_tonic, R_V0V.v0v_tonic, 'custom_v2a_v0v')
@@ -547,7 +547,7 @@ if nn.rgs_connected == 1:
         conn.create_connections(R_V0V.v0v_tonic, R_inh2.inh_inter_tonic, 'custom_v0v_v1')
 
         # V1 inhibits the RG_flx 
-        conn.create(R_inh2.inh_inter_tonic, L_rg1.rg_exc_tonic,  'custom_v1_rg')
+        conn.create_connections(R_inh2.inh_inter_tonic, L_rg1.rg_exc_tonic,  'custom_v1_rg_v0vconn')
 
 
     if nn.high_locomotion_v0v_right == 1: 
@@ -565,7 +565,7 @@ if nn.rgs_connected == 1:
         conn.create_connections(R_V0V.v0v_bursting, R_inh2.inh_inter_bursting, 'custom_v0v_v1')
 
         # V1 inhibits the RG_flx 
-        conn.create(R_inh2.inh_inter_bursting, L_rg1.rg_exc_bursting,  'custom_v1_rg')
+        conn.create(R_inh2.inh_inter_bursting, L_rg1.rg_exc_bursting,  'custom_v1_rg_contra')
 
 
     # 1 - FLX
@@ -658,9 +658,9 @@ cpg_utils(
     L_exc1, L_exc2, R_exc1, R_exc2, 
     L_V0C_1, L_V0C_2,
     L_V1a_1, L_V1a_2,
+    L_inh1, L_inh2, R_inh2,
     L_rc_1, L_rc_2,
     L_mnp1, L_mnp2, R_mnp1, R_mnp2,
-    L_inh1, L_inh2,
     L_V0V, R_V0V,
     L_V0D, R_V0D,
     L_label
@@ -674,9 +674,9 @@ cpg_utils(
     R_exc1, R_exc2, L_exc1, L_exc2,
     R_V0C_1, R_V0C_2,
     R_V1a_1, R_V1a_2,
+    R_inh1, R_inh2, L_inh2,
     R_rc_1, R_rc_2,
     R_mnp1, R_mnp2, L_mnp1, L_mnp2,
-    R_inh1, R_inh2,
     R_V0V, L_V0V,
     R_V0D, L_V0D,
     R_label

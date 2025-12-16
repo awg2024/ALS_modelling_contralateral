@@ -65,6 +65,7 @@ class neural_network():
             self.sparsity_custom_rc_v1a = self.sparsity_v1s_outside_rg_layer 
             self.sparsity_custom_rc_rc = self.sparsity_v1s_outside_rg_layer
             self.sparsity_custom_v1a_v1a = self.sparsity_v1s_outside_rg_layer 
+            
 
             #V1 synaptic strength
             self.w_1a_multiplier = 1  
@@ -248,23 +249,39 @@ class neural_network():
         self.w_custom_v2a_mn_std = 0.12*self.exc_weight_multiplier         
         self.w_custom_v2a_selfexc_mean = 0.5*self.exc_weight_multiplier    
         self.w_custom_v2a_selfexc_std = 0.12*self.exc_weight_multiplier
-        self.w_custom_v0v_v1_mean = 2*self.exc_weight_multiplier
-        self.w_custom_v0v_v1_std = 2*self.exc_weight_multiplier
+        
+        
+        
+        # V0v commissural connection v1 projecting over to excite v1 contralateral 
+        self.w_custom_v0v_v1_mean = 0.05*self.exc_weight_multiplier
+        self.w_custom_v0v_v1_std = 0.05*self.exc_weight_multiplier
+
+        # V0v ipsilateral connection v2a exciting v0v. 
+        self.w_custom_v2a_v0v_mean =  0.05*self.exc_weight_multiplier
+        self.w_custom_v2a_v0v_std =  0.05*self.exc_weight_multiplier
+
+        # V0v ipsilateral SEPERATE CONNECTION 
+        self.w_custom_rg_v2a_v0vconn_mean = 0.05 * self.exc_weight_multiplier
+        self.w_custom_rg_v2a_v0vconn_std = 0.05 * self.exc_weight_multiplier
+
+        # ok so contralateral v1 inhibiting rg SEPERATE CONNECTION for V0v
+        self.w_custom_v1_rg_v0vconn_mean = 0.05  * self.inh_weight_multiplier
+        self.w_custom_v1_rg_v0vconn_std = 0.05 * self.inh_weight_multiplier
+
+    
+
+
+
 
         # v0d inhibiting rg 
         self.w_custom_v0d_rg_inh_mean = 2*self.inh_weight_multiplier
         self.w_custom_v0d_rg_inh_std = 2*self.inh_weight_multiplier
         
         # rg exciting the v0d 
-        self.w_custom_rg_v0d_mean =  2*self.exc_weight_multiplier
-        self.w_custom_rg_v0d_std =  2*self.exc_weight_multiplier
+        self.w_custom_rg_v0d_mean =  8*self.exc_weight_multiplier
+        self.w_custom_rg_v0d_std = 8*self.exc_weight_multiplier
 
-        self.w_custom_v0d_rg_inh_mean = 2*self.inh_weight_multiplier
-        self.w_custom_v0d_rg_inh_std =  2*self.exc_weight_multiplier
-
-        # v2a exciting v0v 
-        self.w_custom_v2a_v0v_mean =  2*self.exc_weight_multiplier
-        self.w_custom_v2a_v0v_std =  2*self.exc_weight_multiplier
+       
 
         # v0v inhibiting rg inhib flex. 
         self.w_custom_v0v_rg_inh_mean = 1.5*self.inh_weight_multiplier  
@@ -293,6 +310,9 @@ class neural_network():
         self.sparsity_custom_v0c_mnp_flx = 0.5
         self.sparsity_custom_v0c_mnp_ext = 0.5 
         self.sparsity_custom_v0v_v1 = 0.5 
+        self.sparsity_custom_rg_v2a_v0vconn = 0.5 
+        self.sparsity_custom_v1_rg_v0vconn = 0.5
+        self.sparsity_custom_v1_rg_v0vconn = 0.5 
     
 
         
@@ -424,6 +444,7 @@ class neural_network():
         self.fb_1a_flx = args['fb_1a_flx']
         self.fb_1a_ext = args['fb_1a_ext']
         self.sim_fb_freq = args['sim_fb_freq']
+        
        
         print('Running freq test ',freq_test,', Mean desc current (T,B), Mean fb current (T,B): ',self.I_e_tonic_mean,self.I_e_bursting_mean,self.I_fb_tonic_mean,self.I_fb_bursting_mean)
         self.I_e_bursting_std = 0.25*self.I_e_bursting_mean #pA 
@@ -451,6 +472,7 @@ class neural_network():
         self.isf_output = args['isf_output']
         self.time_window = args['smoothing_window']
         self.phase_ordered_plot = args['phase_ordered_plot']
+        self.heatmap_recruitment_plot = args['heatmap_recruitment_plot']
 
         #Set spike detector parameters 
         self.sd_params = {"withtime" : True, "withgid" : True, 'to_file' : False, 'flush_after_simulate' : False, 'flush_records' : True}
@@ -481,6 +503,9 @@ class neural_network():
         self.conn_dict_custom_rc_mn = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_rc_mn}
         self.conn_dict_custom_mn_rc = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_mn_rc}
         self.conn_dict_custom_v0v_v1 = {'rule': 'pairwise_bernoulli', 'p':self.sparsity_custom_v0v_v1}
+        self.conn_dict_custom_rg_v2a_v0vconn = {'rule': 'pairwise_bernoulli', 'p':self.sparsity_custom_rg_v2a_v0vconn}
+        self.conn_dict_custom_v1_rg_v0vconn = {'rule': 'pairwise_bernoulli', 'p':self.sparsity_custom_v1_rg_v0vconn}
+        
        
        # contralateral DICT! V0d    
         self.conn_dict_custom_rg_v0d = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_rg_v0d}
@@ -518,5 +543,6 @@ class neural_network():
         pathlib.Path(path).mkdir(parents=True, exist_ok=False)
         pathlib.Path(pathFigures).mkdir(parents=True, exist_ok=False)
         with open(path + '/args_' + id_ + '.yaml', 'w') as yamlfile:
-            #args['seeds]
+            #args['seed'] = simulation_config['seed']
             yaml.dump(args, yamlfile)
+      
