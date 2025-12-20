@@ -249,8 +249,7 @@ class neural_network():
         self.w_custom_v2a_mn_std = 0.12*self.exc_weight_multiplier         
         self.w_custom_v2a_selfexc_mean = 0.5*self.exc_weight_multiplier    
         self.w_custom_v2a_selfexc_std = 0.12*self.exc_weight_multiplier
-        
-        
+    
         
         # V0v commissural connection v1 projecting over to excite v1 contralateral 
         self.w_custom_v0v_v1_mean = 0.05*self.exc_weight_multiplier
@@ -267,10 +266,6 @@ class neural_network():
         # ok so contralateral v1 inhibiting rg SEPERATE CONNECTION for V0v
         self.w_custom_v1_rg_v0vconn_mean = 0.05  * self.inh_weight_multiplier
         self.w_custom_v1_rg_v0vconn_std = 0.05 * self.inh_weight_multiplier
-
-    
-
-
 
 
         # v0d inhibiting rg 
@@ -429,12 +424,20 @@ class neural_network():
 
         self.contralateral_projections_v0c_right = args['contralateral_projections_v0c_right']
         self.contralateral_projections_v0c_left = args['contralateral_projections_v0c_left']
-        
+
          #self.contralateral_projections_v3_flx_left = args['contralateral_projections_v3_flx_left']
          #self.contralateral_projections_v3_ext_left = args['contralateral_projections_v3_ext_left']
          #self.contralateral_projections_v3_flx_right = args['contralateral_projections_v3_flx_right']
          #self.contralateral_projections_v3_ext_right = args['contralateral_projections_v3_ext_right']
         
+        # Arugments for scaling experiments 
+        self.block_time = args['block_time']
+        self.offline_ramp_experiment = args['offline_ramp_experiment'] 
+        self.offline_ramp_weight = args['offline_ramp_weight']
+
+        self.online_ramp_experiment = args['online_ramp_experiment']
+        self.online_ramp_weight = args['online_ramp_weight']
+
         #Feedback
         self.num_pgs = 100
         self.fb_rg_flx = args['fb_rg_flx']
@@ -539,10 +542,4 @@ class neural_network():
         else:
             id_ = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         path = 'saved_simulations' + '/' + 'P'+str(days)+'_D'+str(freq_test) + '/' + id_ 
-        pathFigures = 'saved_simulations' + '/' + 'P'+str(days)+'_D'+str(freq_test) + '/' + id_ + '/Figures'
-        pathlib.Path(path).mkdir(parents=True, exist_ok=False)
-        pathlib.Path(pathFigures).mkdir(parents=True, exist_ok=False)
-        with open(path + '/args_' + id_ + '.yaml', 'w') as yamlfile:
-            #args['seed'] = simulation_config['seed']
-            yaml.dump(args, yamlfile)
-      
+        pathFigures = 'saved_simulations' + '/' + 'P'+str(day

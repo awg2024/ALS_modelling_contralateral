@@ -272,10 +272,14 @@ def convolve_spiking_activity(population_size,population):
     if nn.downsampling_convolved:
         smoothed_spikes = decimate(smoothed_spikes, int(1/nn.time_resolution), n=2, ftype='iir', zero_phase=True)
         time_vector = time_vector[::decimation_factor]
-    smoothed_spikes = smoothed_spikes[:, :-nn.time_window+1] #truncate array by the width of the time window 
+    
+    
+    smoothed_spikes = smoothed_spikes[:, :-nn.time_window + 1] #truncate array by the width of the time window 
     time_vector = time_vector[:smoothed_spikes.shape[1]]
-    smoothed_spikes = smoothed_spikes.mean(axis=0)
-    return smoothed_spikes, time_vector
+    pop_mean = smoothed_spikes.mean(axis=0)
+    
+    return pop_mean, time_vector, smoothed_spikes
+
 
 def inject_current(neuron_population,current):
 	for neuron in neuron_population:

@@ -109,8 +109,8 @@ def cpg_utils(nn,popfunc, conn,
 
     senders_V0d_contra, spiketimes_V0d_contra = popfunc.read_spike_data(V0d_contra.spike_detector)
     senders_V0d, spiketimes_V0d = popfunc.read_spike_data(V0d.spike_detector)
+    
     senders_V0v, spiketimes_V0v = popfunc.read_spike_data(V0v.spike_detector)
-
     senders_V0v_contra, spiketimes_V0v_contra = popfunc.read_spike_data(V0v_contra.spike_detector)
 
     # --- DEBUG: Spike summary for V0 populations ---
@@ -120,9 +120,6 @@ def cpg_utils(nn,popfunc, conn,
 
     debug_spike_report("V0v IPSILATERAL",    senders_V0v,        spiketimes_V0v)
     debug_spike_report("V0v CONTRALATERAL",  senders_V0v_contra, spiketimes_V0v_contra)
-
-
-
 
 
     # Read spike data — contralateral RG and MNP
@@ -477,79 +474,79 @@ def cpg_utils(nn,popfunc, conn,
         t_start = time.perf_counter()
         #Convolve spike data - RG populations
         
-        rg_exc_tonic_convolved1, _ = popfunc.convolve_spiking_activity(nn.flx_exc_tonic_count,spiketimes_exc_tonic1)
-        rg_inh_convolved1, _ = popfunc.convolve_spiking_activity(nn.flx_inh_bursting_count,spiketimes_inh1)
-        rg_inh_tonic_convolved1, _ = popfunc.convolve_spiking_activity(nn.flx_inh_tonic_count,spiketimes_inh_tonic1)
-        rg_exc_convolved1, _ = popfunc.convolve_spiking_activity(nn.flx_exc_bursting_count, spiketimes_exc1)
+        rg_exc_tonic_convolved1, _, _ = popfunc.convolve_spiking_activity(nn.flx_exc_tonic_count,spiketimes_exc_tonic1)
+        rg_inh_convolved1, _, _ = popfunc.convolve_spiking_activity(nn.flx_inh_bursting_count,spiketimes_inh1)
+        rg_inh_tonic_convolved1, _, _ = popfunc.convolve_spiking_activity(nn.flx_inh_tonic_count,spiketimes_inh_tonic1)
+        rg_exc_convolved1, _, _ = popfunc.convolve_spiking_activity(nn.flx_exc_bursting_count, spiketimes_exc1)
     
         rg1_convolved = np.vstack([rg_exc_convolved1,rg_inh_convolved1])
         rg1_convolved = np.vstack([rg1_convolved,rg_exc_tonic_convolved1])
         rg1_convolved = np.vstack([rg1_convolved,rg_inh_tonic_convolved1])
         rg1_convolved = rg1_convolved.mean(axis=0)
 
-        rg_exc_convolved2, _  = popfunc.convolve_spiking_activity(nn.ext_exc_bursting_count,spiketimes_exc2)
-        rg_exc_tonic_convolved2, _  = popfunc.convolve_spiking_activity(nn.ext_exc_tonic_count,spiketimes_exc_tonic2)
-        rg_inh_convolved2, _  = popfunc.convolve_spiking_activity(nn.ext_inh_bursting_count,spiketimes_inh2)
-        rg_inh_tonic_convolved2, _  = popfunc.convolve_spiking_activity(nn.ext_inh_tonic_count,spiketimes_inh_tonic2)
+        rg_exc_convolved2, _, _  = popfunc.convolve_spiking_activity(nn.ext_exc_bursting_count,spiketimes_exc2)
+        rg_exc_tonic_convolved2, _, _  = popfunc.convolve_spiking_activity(nn.ext_exc_tonic_count,spiketimes_exc_tonic2)
+        rg_inh_convolved2, _, _  = popfunc.convolve_spiking_activity(nn.ext_inh_bursting_count,spiketimes_inh2)
+        rg_inh_tonic_convolved2, _, _  = popfunc.convolve_spiking_activity(nn.ext_inh_tonic_count,spiketimes_inh_tonic2)
         rg2_convolved = np.vstack([rg_exc_convolved2,rg_inh_convolved2])
         rg2_convolved = np.vstack([rg2_convolved,rg_exc_tonic_convolved2])
         rg2_convolved = np.vstack([rg2_convolved,rg_inh_tonic_convolved2])
         rg2_convolved = rg2_convolved.mean(axis=0)
 
         #Convolve spike data - V2a excitatory interneuron populations
-        v2a1_convolved, _  = popfunc.convolve_spiking_activity(nn.v2a_tonic_pop_size,spiketimes_exc_inter_tonic1)
-        v2a2_convolved, _  = popfunc.convolve_spiking_activity(nn.v2a_tonic_pop_size,spiketimes_exc_inter_tonic2)
+        v2a1_convolved, _, _  = popfunc.convolve_spiking_activity(nn.v2a_tonic_pop_size,spiketimes_exc_inter_tonic1)
+        v2a2_convolved, _, _  = popfunc.convolve_spiking_activity(nn.v2a_tonic_pop_size,spiketimes_exc_inter_tonic2)
 
         # --- CONTRALATERAL V2a convolved ---
-        v2a_contra1_convolved, _ = popfunc.convolve_spiking_activity(nn.v2a_tonic_pop_size, spiketimes_contra_exc_inter_tonic1)
-        v2a_contra2_convolved, _ = popfunc.convolve_spiking_activity(nn.v2a_tonic_pop_size, spiketimes_contra_exc_inter_tonic2)
+        v2a_contra1_convolved, _, _ = popfunc.convolve_spiking_activity(nn.v2a_tonic_pop_size, spiketimes_contra_exc_inter_tonic1)
+        v2a_contra2_convolved, _, _  = popfunc.convolve_spiking_activity(nn.v2a_tonic_pop_size, spiketimes_contra_exc_inter_tonic2)
 
         # Average contra V2a if needed (match ipsi structure)
         v2a_contra_convolved = np.vstack([v2a_contra1_convolved, v2a_contra2_convolved]).mean(axis=0)
 
         
         #Convolve spike data - V2a excitatory interneuron populations
-        v0c1_convolved, _  = popfunc.convolve_spiking_activity(nn.v0c_pop_size,spiketimes_V0c_1)
-        v0c2_convolved, _  = popfunc.convolve_spiking_activity(nn.v0c_pop_size,spiketimes_V0c_2)
+        v0c1_convolved, _, _  = popfunc.convolve_spiking_activity(nn.v0c_pop_size,spiketimes_V0c_1)
+        v0c2_convolved, _, _  = popfunc.convolve_spiking_activity(nn.v0c_pop_size,spiketimes_V0c_2)
         
-        v1a1_convolved, _ = popfunc.convolve_spiking_activity(nn.v1a_pop_size,spiketimes_V1a_1)
-        v1a2_convolved, _ = popfunc.convolve_spiking_activity(nn.v1a_pop_size,spiketimes_V1a_2)
+        v1a1_convolved, _, _ = popfunc.convolve_spiking_activity(nn.v1a_pop_size,spiketimes_V1a_1)
+        v1a2_convolved, _, _ = popfunc.convolve_spiking_activity(nn.v1a_pop_size,spiketimes_V1a_2)
         
-        rc1_convolved, _ = popfunc.convolve_spiking_activity(nn.rc_pop_size,spiketimes_rc_1)
-        rc2_convolved, _ = popfunc.convolve_spiking_activity(nn.rc_pop_size,spiketimes_rc_2)
+        rc1_convolved, _, _ = popfunc.convolve_spiking_activity(nn.rc_pop_size,spiketimes_rc_1)
+        rc2_convolved, _, _ = popfunc.convolve_spiking_activity(nn.rc_pop_size,spiketimes_rc_2)
 
         #Convolve spike data - v2a and v0v 
 
-        v0v_convolved, _ = popfunc.convolve_spiking_activity(nn.v0v_pop_size,spiketimes_V0v)
+        v0v_convolved, _, v0v_neuron_convolved = popfunc.convolve_spiking_activity(nn.v0v_pop_size,spiketimes_V0v)   # population-averaged signal (T, )
 
-        v0d_convolved, _ = popfunc.convolve_spiking_activity(nn.v0d_pop_size,spiketimes_V0d)
+        v0d_convolved, _, v0d_neuron_convolved = popfunc.convolve_spiking_activity(nn.v0d_pop_size,spiketimes_V0d)
 
-        v0d_contra_convolved, _ = popfunc.convolve_spiking_activity(nn.v0d_pop_size, spiketimes_V0d_contra)
+        v0d_contra_convolved, _, v0d_contra_neuron_convolved = popfunc.convolve_spiking_activity(nn.v0d_pop_size, spiketimes_V0d_contra)
 
-        v0v_contra_convolved, _ = popfunc.convolve_spiking_activity(nn.v0v_pop_size, spiketimes_V0v_contra)
+        v0v_contra_convolved, _, v0v_contra_neuron_convolved = popfunc.convolve_spiking_activity(nn.v0v_pop_size, spiketimes_V0v_contra)
 
 
         #Convolve spike data - MNPs
-        mnp1_convolved, convolved_time = popfunc.convolve_spiking_activity(nn.num_motor_neurons,spiketimes_mnp1)
-        mnp2_convolved, _ = popfunc.convolve_spiking_activity(nn.num_motor_neurons,spiketimes_mnp2)
+        mnp1_convolved, convolved_time, _ = popfunc.convolve_spiking_activity(nn.num_motor_neurons,spiketimes_mnp1)
+        mnp2_convolved, _, _ = popfunc.convolve_spiking_activity(nn.num_motor_neurons,spiketimes_mnp2)
 
         # --- Convolve CONTRALATERAL RG populations (full symmetry to ipsilateral) ---
 
         # Excitatory bursting
-        contra_rg_exc_burst_convolved1, _ = popfunc.convolve_spiking_activity(nn.flx_exc_bursting_count, spiketimes_contra_rg_exc_burst1)
-        contra_rg_exc_burst_convolved2, _ = popfunc.convolve_spiking_activity(nn.ext_exc_bursting_count, spiketimes_contra_rg_exc_burst2)
+        contra_rg_exc_burst_convolved1, _, _ = popfunc.convolve_spiking_activity(nn.flx_exc_bursting_count, spiketimes_contra_rg_exc_burst1)
+        contra_rg_exc_burst_convolved2, _, _ = popfunc.convolve_spiking_activity(nn.ext_exc_bursting_count, spiketimes_contra_rg_exc_burst2)
 
         # Inhibitory bursting
-        contra_rg_inh_burst_convolved1, _ = popfunc.convolve_spiking_activity(nn.flx_inh_bursting_count, spiketimes_contra_rg_inh_burst1)
-        contra_rg_inh_burst_convolved2, _ = popfunc.convolve_spiking_activity(nn.ext_inh_bursting_count, spiketimes_contra_rg_inh_burst2)
+        contra_rg_inh_burst_convolved1, _, _ = popfunc.convolve_spiking_activity(nn.flx_inh_bursting_count, spiketimes_contra_rg_inh_burst1)
+        contra_rg_inh_burst_convolved2, _, _ = popfunc.convolve_spiking_activity(nn.ext_inh_bursting_count, spiketimes_contra_rg_inh_burst2)
 
         # Excitatory tonic
-        contra_rg_exc_tonic_convolved1, _ = popfunc.convolve_spiking_activity(nn.flx_exc_tonic_count, spiketimes_contra_rg_exc_tonic1)
-        contra_rg_exc_tonic_convolved2, _ = popfunc.convolve_spiking_activity(nn.ext_exc_tonic_count, spiketimes_contra_rg_exc_tonic2)
+        contra_rg_exc_tonic_convolved1, _, _ = popfunc.convolve_spiking_activity(nn.flx_exc_tonic_count, spiketimes_contra_rg_exc_tonic1)
+        contra_rg_exc_tonic_convolved2, _, _ = popfunc.convolve_spiking_activity(nn.ext_exc_tonic_count, spiketimes_contra_rg_exc_tonic2)
 
         # Inhibitory tonic
-        contra_rg_inh_tonic_convolved1, _ = popfunc.convolve_spiking_activity(nn.flx_inh_tonic_count, spiketimes_contra_rg_inh_tonic1)
-        contra_rg_inh_tonic_convolved2, _ = popfunc.convolve_spiking_activity(nn.ext_inh_tonic_count, spiketimes_contra_rg_inh_tonic2)
+        contra_rg_inh_tonic_convolved1, _, _ = popfunc.convolve_spiking_activity(nn.flx_inh_tonic_count, spiketimes_contra_rg_inh_tonic1)
+        contra_rg_inh_tonic_convolved2, _, _ = popfunc.convolve_spiking_activity(nn.ext_inh_tonic_count, spiketimes_contra_rg_inh_tonic2)
 
         # Average all subpops (same logic as ipsilateral)
         contra_rg1_convolved = np.vstack([
@@ -569,15 +566,15 @@ def cpg_utils(nn,popfunc, conn,
 
 
         # Convolve contralateral MNP
-        contra_mnp1_convolved, _ = popfunc.convolve_spiking_activity(nn.num_motor_neurons, spiketimes_contra_mnp1)
-        contra_mnp2_convolved, _ = popfunc.convolve_spiking_activity(nn.num_motor_neurons, spiketimes_contra_mnp2)
+        contra_mnp1_convolved, _, _ = popfunc.convolve_spiking_activity(nn.num_motor_neurons, spiketimes_contra_mnp1)
+        contra_mnp2_convolved, _, _ = popfunc.convolve_spiking_activity(nn.num_motor_neurons, spiketimes_contra_mnp2)
 
                 
         # Convolve spike data - inh populations
         if nn.rgs_connected == 1:
-            v2b_convolved, _  = popfunc.convolve_spiking_activity(nn.num_inh_inter_tonic_v2b, spiketimes_inh_inter_tonic1)
-            v1_convolved, _  = popfunc.convolve_spiking_activity(nn.num_inh_inter_tonic_v1, spiketimes_inh_inter_tonic2)
-            v1_contra_convolved, _ = popfunc.convolve_spiking_activity(nn.num_inh_inter_tonic_v1, spikestimes_inh_inter_tonic2_contra)
+            v2b_convolved, _, _  = popfunc.convolve_spiking_activity(nn.num_inh_inter_tonic_v2b, spiketimes_inh_inter_tonic1)
+            v1_convolved, _, _  = popfunc.convolve_spiking_activity(nn.num_inh_inter_tonic_v1, spiketimes_inh_inter_tonic2)
+            v1_contra_convolved, _, _ = popfunc.convolve_spiking_activity(nn.num_inh_inter_tonic_v1, spikestimes_inh_inter_tonic2_contra)
 
 
         t_stop = time.perf_counter()    
@@ -720,6 +717,7 @@ def cpg_utils(nn,popfunc, conn,
         
         mnp1_avg_norm = (mnp1_convolved-np.min(mnp1_convolved))/(np.max(mnp1_convolved)-np.min(mnp1_convolved))
         mnp2_avg_norm = (mnp2_convolved-np.min(mnp2_convolved))/(np.max(mnp2_convolved)-np.min(mnp2_convolved))
+        
         if max(mnp1_avg_norm)>0 and max(mnp2_avg_norm)>0: 
             avg_freq, avg_phase, bd_comparison = calc.analyze_output(mnp1_avg_norm,mnp2_avg_norm,mnp1_convolved_scaled,mnp2_convolved_scaled,'MNP',y_line_bd=0.4,y_line_phase=0.7)
         
@@ -928,94 +926,115 @@ def cpg_utils(nn,popfunc, conn,
         
         if nn.args['heatmap_recruitment_plot']: 
 
-            # ============================================================
-            # === HEATMAPS FOR V0d AND V0v (Separate Ipsilateral/Contra) ===
-            # ============================================================
 
-            def plot_population_heatmap(pop_name, pop_convolved, pop_scale, time_vector, neuron_count, save_path=None):
-                """
-                Plot individual neuron activation over time (heatmap).
-                
-                Parameters:
-                -----------
-                pop_name      : str, e.g. 'V0d Ipsilateral'
-                pop_convolved : matrix (N x T) convolved firing rate per neuron OR 1D flattened array
-                pop_scale     : scale factor (neuron_output_scale)
-                time_vector   : 1D array of time points
-                neuron_count  : int, number of neurons in population
-                save_path     : str, path to save figure (optional)
-                """
-                
-                # Reshape if flattened
-                if pop_convolved.ndim == 1:
-                    time_steps = len(pop_convolved) // neuron_count
-                    pop_convolved = pop_convolved.reshape(neuron_count, time_steps)
-                
-                # Apply scaling
-                pop_convolved_scaled = pop_convolved * pop_scale
+            def plot_recruitment_heatmap(
+                title,
+                convolved_activity,   # (neurons × time)
+                time_vec,
+                save_path=None
+            ):
+                # Sort neurons by mean firing rate
+                sorted_activity = convolved_activity
 
-                # NO SORTING - keep original neuron order
-                pop_sorted = pop_convolved_scaled
 
-                # --- PLOT ---
-                plt.figure(figsize=(16, 8))
-                plt.imshow(
-                    pop_sorted,
-                    aspect='auto',
-                    extent=[time_vector[0], time_vector[-1], 0, pop_sorted.shape[0]],
-                    origin='lower',
-                    cmap='plasma'
+                pop_mean = np.nanmean(convolved_activity, axis=0)
+
+                fig, ax = plt.subplots(2, 1, figsize=(18, 12), sharex=True)
+
+                ax[0].plot(time_vec, pop_mean)
+                ax[0].set_ylabel("Population firing rate (a.u.)")
+                ax[0].set_title(title)
+
+                im = ax[1].imshow(
+                    sorted_activity,
+                    aspect="auto",
+                    origin="lower",
+                    extent=[time_vec[0], time_vec[-1], 0, sorted_activity.shape[0]],
+                    cmap="plasma"
                 )
-                plt.colorbar(label='Firing Rate (Hz)')
-                plt.xlabel("Time (ms)")
-                plt.ylabel("Neuron ID")
-                plt.title(f"{pop_name} – Individual Neuron Activation Over Time")
+
+                ax[1].set_ylabel("Neuron ID")
+                ax[1].set_xlabel("Time (ms)")
+                fig.colorbar(im, ax=ax[1], label="Convolved firing rate")
+
+                plt.tight_layout()
 
                 if save_path is not None:
                     plt.savefig(save_path, dpi=300, bbox_inches="tight")
 
-                plt.close()
+                plt.show()
+        
+            if nn.args['low_locomotion_v0d_left'] & nn.args['low_locomotion_v0d_right']:
+                plot_recruitment_heatmap(
+                    "V0d Ipsilateral Recruitment",
+                    v0d_neuron_convolved,
+                    t,
+                    save_path=f"{nn.pathFigures}/{label}_V0d_ipsi_recruitment.png"
+                )
+
+                plot_recruitment_heatmap(
+                    "V0d Contralateral Recruitment",
+                    v0d_contra_neuron_convolved,
+                    t,
+                    save_path=f"{nn.pathFigures}/{label}_V0d_contra_recruitment.png"
+                )
+
+
+            if nn.args['low_locomotion_v0v_left'] & nn.args['low_locomotion_v0v_right']:
+                plot_recruitment_heatmap(
+                    "V0v Ipsilateral Recruitment",
+                    v0v_neuron_convolved,
+                    t,
+                    save_path=f"{nn.pathFigures}/{label}_V0v_ipsi_recruitment.png"
+                )
+
+                plot_recruitment_heatmap(
+                    "V0v Contralateral Recruitment",
+                    v0v_contra_neuron_convolved,
+                    t,
+                    save_path=f"{nn.pathFigures}/{label}_V0v_contra_recruitment.png"
+                )
+
+
+        if nn.args['offline_ramp_experiment']:
+
+
+            specified_weight = nn.args['offline_ramp_weight']
+
+            # plotting each simulation since we are scaling for each simulation 
+
+
+            if nn.args['low_locomotion_v0d_right'] and nn.args['low_locomotion_v0d_right'] == 1: 
+
+                print("[INFO] V0D Low Locomotion - Offline Ramp Experiment")
+
+            
+            if nn.args['low_locomotion_v0v_right'] and nn.args['low_locomotion_v0v_right'] == 1: 
+
+                print("[INFO] V0V Low Locomotion - Offline Ramp Experiment")
+
+
     
-            if nn.args['low_locomotion_v0d_left']:
-                plot_population_heatmap(
-                    "V0d Ipsilateral",
-                    v0d_convolved,
-                    v0d_scale,
-                    t,
-                    nn.v0d_pop_size,  # ← Add neuron count here
-                    save_path=f"{nn.pathFigures}/{label}_heatmap_V0d_ipsi.png"
-                )
+        if nn.args['online_ramp_experiment']: 
+
+            specified_weight = nn.args['online_ramp_weight']
+
+            # plotting the simulation but we need to somehow show the specified weight
+
+            if nn.args['low_locomotion_v0d_right'] and nn.args['low_locomotion_v0d_right'] == 1: 
+
+                print("[INFO] V0D Low Locomotion - Online Ramp Experiment")
 
 
-            if nn.args['low_locomotion_v0d_right']:
-                plot_population_heatmap(
-                    "V0d Contralateral",
-                    v0d_contra_convolved,
-                    v0d_scae,
-                    t,
-                    nn.v0d_pop_size,  # ← Same neuron count
-                    save_path=f"{nn.pathFigures}/{label}_heatmap_V0d_contra.png"
-                )
+        
+            if nn.args['low_locomotion_v0v_right'] and nn.args['low_locomotion_v0v_right'] == 1: 
 
-            if nn.args['low_locomotion_v0v_left']:
-                plot_population_heatmap(
-                    "V0v Ipsilateral",
-                    v0v_convolved,
-                    v0v_scale,
-                    t,
-                    nn.v0v_pop_size,  # ← Different neuron count
-                    save_path=f"{nn.pathFigures}/{label}_heatmap_V0v_ipsi.png"
-                )
+                print("[INFO] V0V Low Locomotion - Online Ramp Experiment")
 
-            if nn.args['low_locomotion_v0v_right']:
-                plot_population_heatmap(
-                    "V0v Contralateral",
-                    v0v_contra_convolved,
-                    v0v_scale,
-                    t,
-                    nn.v0v_pop_size,  # ← Same neuron count
-                    save_path=f"{nn.pathFigures}/{label}_heatmap_V0v_contra.png"
-                )
+
+
+
+
 
         
     if nn.spike_distribution_plot==1:

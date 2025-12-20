@@ -1,7 +1,19 @@
 #Simulation parameters
 delta_clock: .1 #Simulation time step (ms)
 seed: 3141774 #Use 0 for a random seed, Control seed: 3141774
+
 t_steps: 2000 # use 10000 in normal sims, 2000 lowest sim time without errors 
+
+
+ramp_duration: 10000 # length of ramp experiment 
+
+block_time: 2000 # used for offline ramp experiments 
+offline_ramp_experiment: 0 # takes the block_time then scales for EACH simulation 
+offline_ramp_weight: '' # specified weight to scale for offline scaling 
+
+online_ramp_experiment: 0 # taking t_step specified time scaling up DURING the simulation 
+online_ramp_weight: '' # specified weight to scale for online scaling 
+
 optimizing: 0 #Use 1 when running Bayesian optimization to find parameters
 #Define disease progression
 days_after_onset: 0 #Healthy = 0; P45 = 45; P63 = 63; P112 = 112
@@ -95,5 +107,4 @@ phase_ordered_plot: 1
 raster_plot: 0
 rate_coded_plot: 1
 spike_distribution_plot: 0
-heatmap_recruitment_plot: 0
-
+heatmap_recruitment_plot: 1 

@@ -183,8 +183,9 @@ class ConnectNetwork():
                 'sparsity': 'sparsity_custom_v1_rg_v0vconn'
             }
         }
-      
+        self.synapses = {}
      
+
 
     def create_connections(self, pop1, pop2, syn_type):
         """
@@ -195,6 +196,11 @@ class ConnectNetwork():
             pop2: Target population.
             syn_type: Type of synapse (must be a valid key in `self.synapse_params`).
         """
+        
+        if syn_type not in self.synapse_params:
+            raise ValueError(f"Invalid synapse type: {syn_type}")
+
+        
         if syn_type in self.synapse_params:
             conn_dict = getattr(netparams, self.synapse_params[syn_type]['conn_dict'])
             syn_params = self.synapse_params[syn_type]['syn_params']
@@ -202,7 +208,14 @@ class ConnectNetwork():
 
             # Create the connection
             nest.Connect(pop1, pop2, conn_dict, syn_params)
-            self.local_connections = len(nest.GetConnections(source=pop1, target=pop2))
+        
+            # CAPTURE the connections immediately
+            connections = nest.GetConnections(source=pop1, target=pop2)
+
+            # STORE them under the synapse name
+            self.synapses[syn_type] = connections
+
+
             self.name_of_pops.append(syn_type)
             self.num_of_synapses.append(self.local_connections)
             weight_mean_name = str('w_'+syn_type+'_mean')
