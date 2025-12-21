@@ -589,8 +589,9 @@ if nn.rgs_connected == 1:
     # ================================ END OF RIGHT SIDE CPG CODE ==========================================================
    
 
-# ==================================================================================================== RAMP CODE 
 
+        
+    ##  =============================== ONLINE RAMP ==========
     if nn.online_ramp_experiment == 1: 
 
         print("[INFO] Online Ramp Experiment is ON")
@@ -599,6 +600,12 @@ if nn.rgs_connected == 1:
         w_start = 0.0
         w_end = 10.0
         ramp_duration = nn.ramp_duration  # ms
+
+        # initialize BEFORE loop
+        online_ramp_log = {
+            "time": [],
+            "weight": [],
+        }
 
         # retrieving connection
         connections = conn.synapses[nn.online_ramp_weight]
@@ -617,16 +624,21 @@ if nn.rgs_connected == 1:
         for _ in range(num_steps):
 
             nest.Simulate(nn.time_resolution * 10)
+
             t = nest.biological_time  # ms since start
 
             # -------- RAMP LOGIC --------
             if t <= ramp_duration:
-                w = w_start + (w_end - w_start) * (t / ramp_duration)
+                new_weight = w_start + (w_end - w_start) * (t / ramp_duration)
             else:
-                w = w_end
+                new_weight = w_end
 
             #  APPLY WEIGHT
-            nest.SetStatus(connections, {"weight": w})
+            nest.SetStatus(connections, {"weight": new_weight})
+
+            # LOG AFTER APPLYING
+            online_ramp_log["time"].append(t)
+            online_ramp_log["weight"].append(new_weight)
 
             num_spikes_flx_L = popfunc.read_recent_spike_data(L_mnp1.spike_detector_motor)
             num_spikes_ext_L = popfunc.read_recent_spike_data(L_mnp2.spike_detector_motor)
@@ -675,7 +687,8 @@ if nn.rgs_connected == 1:
             if nn.fb_1a_ext:
                 nest.SetStatus(R_V1a_2.v1a_2_pg, {"rate": flx_1a_feedback_R})
 
-            print(f"t = {t:.1f} ms, w = {w:.3f}", end="\r")
+            print(f"t = {t:.1f} ms, w = {new_weight:.3f}", end="\r")
+
 
         t_stop = time.perf_counter()
         print(f"\n[INFO] Online Ramp completed in {t_stop - t_start:.2f} s")
@@ -697,7 +710,10 @@ if nn.rgs_connected == 1:
             L_mnp1, L_mnp2, R_mnp1, R_mnp2,
             L_V0V, R_V0V,
             L_V0D, R_V0D,
-            L_label
+            L_label, 
+            online_ramp_log, # ok so instead of putting in new_weight we have a dict we are passing for online 
+            nn.online_ramp_weight,
+            ramp_type="online"
         )
 
         print("[INFO] Calling RIGHT utilis")
@@ -713,9 +729,12 @@ if nn.rgs_connected == 1:
             R_mnp1, R_mnp2, L_mnp1, L_mnp2,
             R_V0V, L_V0V,
             R_V0D, L_V0D,
-            R_label
+            R_label,
+            online_ramp_log, # ok so instead of putting in new_weight we have a dict we are passing for online 
+            nn.online_ramp_weight,
+            ramp_type="online"
             )
-
+         ##  =============================== END OF ONLINE RAMP ===============================
 
     # ================= OFFLINE BLOCK STEPWISE RAMP =================
     if nn.offline_ramp_experiment == 1:
@@ -774,46 +793,51 @@ if nn.rgs_connected == 1:
 
                 print(f"t = {nest.biological_time}", end="\r")
 
-        t_stop = time.perf_counter()
-        print(f"\nOffline Ramp Experiment completed in {round(t_stop - t_start, 2)} s")
-        
-        # ================= CPG UTILS FOR BOTH SIDES =================
-        L_label = "LEFT"
-        R_label = "RIGHT"
+            t_stop = time.perf_counter()
+            print(f"\nOffline Ramp Experiment Block completed in {round(t_stop - t_start, 2)} s")
+                
+                # CPG UTILS FOR BOTH SIDES 
+            L_label = "LEFT"
+            R_label = "RIGHT"
 
-        print("[INFO] Calling LEFT utilis")
+            print("[INFO] Calling LEFT utilis")
 
-        cpg_utils(
-            nn, popfunc, conn,
-            L_rg1, L_rg2, R_rg1, R_rg2, 
-            L_exc1, L_exc2, R_exc1, R_exc2, 
-            L_V0C_1, L_V0C_2,
-            L_V1a_1, L_V1a_2,
-            L_inh1, L_inh2, R_inh2,
-            L_rc_1, L_rc_2,
-            L_mnp1, L_mnp2, R_mnp1, R_mnp2,
-            L_V0V, R_V0V,
-            L_V0D, R_V0D,
-            L_label
-        )
+            cpg_utils(
+                    nn, popfunc, conn,
+                    L_rg1, L_rg2, R_rg1, R_rg2, 
+                    L_exc1, L_exc2, R_exc1, R_exc2, 
+                    L_V0C_1, L_V0C_2,
+                    L_V1a_1, L_V1a_2,
+                    L_inh1, L_inh2, R_inh2,
+                    L_rc_1, L_rc_2,
+                    L_mnp1, L_mnp2, R_mnp1, R_mnp2,
+                    L_V0V, R_V0V,
+                    L_V0D, R_V0D,
+                    L_label, 
+                    new_weight, # singular new weight passing 
+                    nn.offline_ramp_weight,
+                    ramp_type="offline"
+                )
 
-        print("[INFO] Calling RIGHT utilis")
+            print("[INFO] Calling RIGHT utilis")
 
-        cpg_utils(
-            nn, popfunc, conn,
-            R_rg1, R_rg2, L_rg1, L_rg2,
-            R_exc1, R_exc2, L_exc1, L_exc2,
-            R_V0C_1, R_V0C_2,
-            R_V1a_1, R_V1a_2,
-            R_inh1, R_inh2, L_inh2,
-            R_rc_1, R_rc_2,
-            R_mnp1, R_mnp2, L_mnp1, L_mnp2,
-            R_V0V, L_V0V,
-            R_V0D, L_V0D,
-            R_label
-        )
-
-
+            cpg_utils(
+                    nn, popfunc, conn,
+                    R_rg1, R_rg2, L_rg1, L_rg2,
+                    R_exc1, R_exc2, L_exc1, L_exc2,
+                    R_V0C_1, R_V0C_2,
+                    R_V1a_1, R_V1a_2,
+                    R_inh1, R_inh2, L_inh2,
+                    R_rc_1, R_rc_2,
+                    R_mnp1, R_mnp2, L_mnp1, L_mnp2,
+                    R_V0V, L_V0V,
+                    R_V0D, L_V0D,
+                    R_label, 
+                    new_weight,  # singular new weight passing . 
+                    nn.offline_ramp_weight,
+                    ramp_type="offline"
+                )
+                ##  =============================== END OF OFFLINE BLOCK STEPWISE RAMP ===============================
 
                 
 # if ramp experiments are not activated from the config file run simulations normally. 

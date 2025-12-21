@@ -291,3 +291,24 @@ def normalize_rows(matrix):
     max_values = np.max(matrix, axis=1, keepdims=True)
     normalized_matrix = matrix / max_values
     return normalized_matrix	
+
+from matplotlib.collections import LineCollection
+from matplotlib.colors import Normalize
+import numpy as np
+
+def plot_colored_trace(ax, t, y, weights, cmap="viridis", lw=2):
+    """
+    Plot a single trace coloured by weight over time.
+    """
+    points = np.array([t, y]).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+    norm = Normalize(vmin=np.min(weights), vmax=np.max(weights))
+    lc = LineCollection(segments, cmap=cmap, norm=norm)
+    lc.set_array(weights)
+    lc.set_linewidth(lw)
+
+    ax.add_collection(lc)
+    ax.set_xlim(t[0], t[-1])
+
+    return lc

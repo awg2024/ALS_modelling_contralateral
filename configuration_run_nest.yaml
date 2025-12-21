@@ -1,18 +1,17 @@
 #Simulation parameters
 delta_clock: .1 #Simulation time step (ms)
 seed: 3141774 #Use 0 for a random seed, Control seed: 3141774
-
 t_steps: 2000 # use 10000 in normal sims, 2000 lowest sim time without errors 
 
-
+# 0FFLINE & ONLINE RAMP EXPERIMENT PARAMS 
 ramp_duration: 10000 # length of ramp experiment 
-
 block_time: 2000 # used for offline ramp experiments 
-offline_ramp_experiment: 0 # takes the block_time then scales for EACH simulation 
-offline_ramp_weight: '' # specified weight to scale for offline scaling 
-
+offline_ramp_experiment: 1 # takes the block_time then scales for EACH simulation 
+offline_ramp_weight: 'custom_v0d_rg_inh' # specified weight to scale for offline scaling 
 online_ramp_experiment: 0 # taking t_step specified time scaling up DURING the simulation 
-online_ramp_weight: '' # specified weight to scale for online scaling 
+online_ramp_weight: 'custom_v0d_rg_inh' # specified weight to scale for online scaling 
+# ======================================================
+
 
 optimizing: 0 #Use 1 when running Bayesian optimization to find parameters
 #Define disease progression
@@ -32,6 +31,7 @@ fb_v2b: 0
 fb_v1: 0
 fb_1a_flx: 0
 fb_1a_ext: 0
+
 #Network parameters
 freq_test: 1        #1 = 200/320; 2 = 400/640 - changing the tonic drive into the network. 
 remove_inhibition: 0 #Use 1 to remove inhibition within the RG populations
@@ -40,7 +40,7 @@ rgs_connected: 1 #Use 0 to remove mutual inhibition between the RG populations
 v1v2b_mn_connected: 1 #Use 0 to remove projections from V1/V2b pops to MNPs
 v2a_mn_intact: 0 #Use 1 to preserve V2a and MN populations at P112
 
-# ======================
+
 # LOW LOCOMOTION - CONTRALATERAL PROJECTIONS  
 # connections of v0d - being excited by RG_Flx and inhibiting OPPOSITE RG_FLX 
 # connections of v0v - RG_F exciting V2a. V2a exciting V0v. V0v contralaterally projecting and inhibiting inhib RG_Flx 
@@ -50,9 +50,6 @@ low_locomotion_v0d_left: 0
 low_locomotion_v0v_right: 1
 low_locomotion_v0v_left: 1
 
-# ======================
-
-# ======================
 # HIGH LOCOMOTION - CONTRALATERAL PROJECTIONS  
 # connections of v0d - being excited by RG_Flx and inhibiting OPPOSITE RG_FLX 
 # connections of v0v - RG_F exciting V2a. V2a exciting V0v. V0v contralaterally projecting and inhibiting inhib RG_Flx 

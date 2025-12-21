@@ -46,8 +46,11 @@ def cpg_utils(nn,popfunc, conn,
               mnp1, mnp2, contra_mnp1, contra_mnp2,
               V0v, V0v_contra, 
               V0d, V0d_contra, 
-              label):
-
+              label, 
+              ramp_weight=None,           # optional
+              ramp_weight_name=None,         # optional
+              ramp_type=None):                   # optional 
+    
     spike_count_array = []
     #Read spike data - rg populations
     senders_exc1,spiketimes_exc1 = popfunc.read_spike_data(rg1.spike_detector_rg_exc_bursting)
@@ -996,43 +999,467 @@ def cpg_utils(nn,popfunc, conn,
                 )
 
 
-        if nn.args['offline_ramp_experiment']:
 
 
-            specified_weight = nn.args['offline_ramp_weight']
+        if ramp_type == "offline" and ramp_weight is not None and nn.args['low_locomotion_v0v_left'] & nn.args['low_locomotion_v0v_right']:
 
-            # plotting each simulation since we are scaling for each simulation 
+            print("===============================================")
+            print("[INFO] V0V Offline Ramp Plotting In Progress...")
+            print("===============================================")
+            time.sleep(5)
 
 
-            if nn.args['low_locomotion_v0d_right'] and nn.args['low_locomotion_v0d_right'] == 1: 
+            from matplotlib import gridspec
 
-                print("[INFO] V0D Low Locomotion - Offline Ramp Experiment")
+            fig = plt.figure(figsize=(16, 14))
+            gs = gridspec.GridSpec(5, 2, height_ratios=[1.2, 1.0, 1.0, 1.2, 1.0])  
+            # Rows: RG, V2a, V1, V0v, MNP
 
-            
-            if nn.args['low_locomotion_v0v_right'] and nn.args['low_locomotion_v0v_right'] == 1: 
+            fig.suptitle(
+                f"{label} | OFFLINE RAMP | {ramp_weight_name} = {ramp_weight:.2f}",
+                fontsize=14,
+                y=0.98
+            )
 
-                print("[INFO] V0V Low Locomotion - Offline Ramp Experiment")
+            # ----------------------------------------------------------
+            # ROW 1: RG
+            # ----------------------------------------------------------
+            ax_rg_left  = fig.add_subplot(gs[0, 0])
+            ax_rg_right = fig.add_subplot(gs[0, 1])
 
+            ax_rg_left.plot(t, rg1_convolved * rg1_scale)
+            ax_rg_left.plot(t, rg2_convolved * rg2_scale)
+            ax_rg_left.set_title("RG Left")
+            ax_rg_left.legend(["RG_F ipsi", "RG_E ipsi"], fontsize="xx-small")
+
+            ax_rg_right.plot(t, contra_rg1_convolved * contra_rg1_scale, linestyle='--', alpha=0.7)
+            ax_rg_right.plot(t, contra_rg2_convolved * contra_rg2_scale, linestyle='--', alpha=0.7)
+            ax_rg_right.set_title("RG Right")
+            ax_rg_right.legend(["RG_F contra", "RG_E contra"], fontsize="xx-small")
+
+            # ----------------------------------------------------------
+            # ROW 2: V2a (NEW ROW)
+            # ----------------------------------------------------------
+            ax_v2a_left  = fig.add_subplot(gs[1, 0])
+            ax_v2a_right = fig.add_subplot(gs[1, 1])
+
+            ax_v2a_left.plot(t, v2a1_convolved * v2a1_scale, color="tab:green")
+            ax_v2a_left.set_title("V2a Left (ipsilateral)")
+            ax_v2a_left.set_ylabel("Freq (Hz)")
+
+            ax_v2a_right.plot(t, v2a_contra_convolved * contra_v2a_scale, color="tab:green")
+            ax_v2a_right.set_title("V2a Right (contralateral)")
 
     
-        if nn.args['online_ramp_experiment']: 
+            # ----------------------------------------------------------
+            # ROW 3: V0v
+            # ----------------------------------------------------------
+            ax_v0v_left = fig.add_subplot(gs[2, 0])
+            ax_v0v_right = fig.add_subplot(gs[2, 1])
 
-            specified_weight = nn.args['online_ramp_weight']
+            ax_v0v_left.plot(t, v0v_convolved * v0v_scale, color="tab:blue")
+            ax_v0v_left.set_title("V0v Left (ipsilateral)")
 
-            # plotting the simulation but we need to somehow show the specified weight
+            ax_v0v_right.plot(t, v0v_contra_convolved * v0v_contra_scale, color="tab:red")
+            ax_v0v_right.set_title("V0v Right (contralateral)")
 
-            if nn.args['low_locomotion_v0d_right'] and nn.args['low_locomotion_v0d_right'] == 1: 
+            # ----------------------------------------------------------
+            # ROW 4: V1
+            # ----------------------------------------------------------
+            
+            ax_v1_left = fig.add_subplot(gs[3, 0])
+            ax_v1_right = fig.add_subplot(gs[3, 1])
 
-                print("[INFO] V0D Low Locomotion - Online Ramp Experiment")
+            ax_v1_left.plot(t, v1_convolved * v1_scale, color="tab:blue")
+            ax_v1_left.set_title("V1 Left Hemicord (Ipsilateral)")
+
+            ax_v1_right.plot(t, v1_contra_convolved * v1_scale_contra, color="tab:red")
+            ax_v1_right.set_title("V1 Right Hemicord (Contralateral)")
 
 
-        
-            if nn.args['low_locomotion_v0v_right'] and nn.args['low_locomotion_v0v_right'] == 1: 
+            # ----------------------------------------------------------
+            # ROW 4: MNP
+            # ----------------------------------------------------------
+            ax_mnp_left = fig.add_subplot(gs[4, 0])
+            ax_mnp_right = fig.add_subplot(gs[4, 1])
 
-                print("[INFO] V0V Low Locomotion - Online Ramp Experiment")
+            ax_mnp_left.plot(t, mnp1_convolved * mnp1_scale)
+            ax_mnp_left.plot(t, mnp2_convolved * mnp2_scale)
+            ax_mnp_left.legend(["FLX ipsi", "EXT ipsi"], fontsize="xx-small")
+            ax_mnp_left.set_title("MNP Left")
+            ax_mnp_left.set_xlabel("Time (ms)")
+
+            ax_mnp_right.plot(t, contra_mnp1_convolved * contra_mnp1_scale, linestyle='--', alpha=0.7)
+            ax_mnp_right.plot(t, contra_mnp2_convolved * contra_mnp2_scale, linestyle='--', alpha=0.7)
+            ax_mnp_right.legend(["FLX contra", "EXT contra"], fontsize="xx-small")
+            ax_mnp_right.set_title("MNP Right")
+            ax_mnp_right.set_xlabel("Time (ms)")
+
+            plt.tight_layout()
+
+            if nn.args['save_results']:
+                plt.savefig(nn.pathFigures + '/' + f"{label}_RG_V2a_V0v_MNP_combined.png",
+                            dpi=300, bbox_inches="tight")
+
+            plt.close()
+
+
+        if ramp_type == "offline" and ramp_weight is not None and nn.args['low_locomotion_v0d_left'] & nn.args['low_locomotion_v0d_right']:
+
+            print("===============================================")
+            print("[INFO] V0D Offline Ramp Plotting In Progress...")
+            print("===============================================")
+            time.sleep(5)
+            
+            
+            import matplotlib.gridspec as gridspec
+
+            fig = plt.figure(figsize=(16, 12))
+            gs = gridspec.GridSpec(3, 2, height_ratios=[1.2, 1.0, 1.2])  # RG, V0d, MNP
+
+            fig.suptitle(
+                f"{label} | OFFLINE RAMP | {ramp_weight_name} = {ramp_weight:.2f}",
+                fontsize=14,
+                y=0.98
+            )
+         
+            # --- Row 1: RG ---
+            ax_rg_left  = fig.add_subplot(gs[0, 0])
+            ax_rg_right = fig.add_subplot(gs[0, 1])
+
+            ax_rg_left.plot(t, rg1_convolved * rg1_scale)
+            ax_rg_left.plot(t, rg2_convolved * rg2_scale)
+            ax_rg_left.legend(["RG_F ipsi", "RG_E ipsi"], fontsize="xx-small")
+
+    
+            ax_rg_right.plot(t, contra_rg1_convolved * contra_rg1_scale, linestyle='--', alpha=0.6)
+            ax_rg_right.plot(t, contra_rg2_convolved * contra_rg2_scale, linestyle='--', alpha=0.6)
+            ax_rg_right.legend(["RG_F contra", "RG_E contra"], fontsize="xx-small")
+
+
+            # --- Row 2: V0d (split into ipsilateral + contralateral) ---
+            ax_v0d_left = fig.add_subplot(gs[1, 0])
+            ax_v0d_right = fig.add_subplot(gs[1, 1])
+
+            ax_v0d_left.plot(t, v0d_convolved * v0d_scale, color="tab:blue")
+            ax_v0d_left.set_title("V0d Ipsilateral (Left Inhibitory Output)")
+            ax_v0d_left.set_ylabel("Freq (Hz)")
+
+            ax_v0d_right.plot(t, v0d_contra_convolved * v0d_contra_scale, color="tab:red")
+            ax_v0d_right.set_title("V0d Contralateral (Cross-midline Inhibition)")
+
+            # --- Row 3: MNP ---
+            ax_mnp_left = fig.add_subplot(gs[2, 0])
+            ax_mnp_right = fig.add_subplot(gs[2, 1])
+
+            ax_mnp_left.plot(t, mnp1_convolved * mnp1_scale)
+            ax_mnp_left.plot(t, mnp2_convolved * mnp2_scale)
+
+            ax_mnp_left.legend(["FLX ipsi", "EXT ipsi"], fontsize="xx-small")
+
+            
+            ax_mnp_right.plot(t, contra_mnp1_convolved * contra_mnp1_scale, linestyle='--', alpha=0.6)
+            ax_mnp_right.plot(t, contra_mnp2_convolved * contra_mnp2_scale, linestyle='--', alpha=0.6)
+            ax_mnp_right.legend(["FLX contra", "EXT contra"], fontsize="xx-small")
+
+            # Shared X labels bottom row only
+            ax_mnp_left.set_xlabel("Time (ms)")
+            ax_mnp_right.set_xlabel("Time (ms)")
+
+            plt.tight_layout()
+
+            if nn.args['save_results']:
+                plt.savefig(nn.pathFigures + '/' + f"{label}_RG_V0d_split_MNP_combined.png",
+                            dpi=300, bbox_inches="tight")
+
+            plt.close()
 
 
 
+        if ramp_type == "online" and ramp_weight is not None and nn.args['low_locomotion_v0v_left'] & nn.args['low_locomotion_v0v_right']:
+
+            print("===============================================")
+            print("[INFO] V0V Online Ramp Plotting In Progress...")
+            print("===============================================")
+            time.sleep(5)
+
+            from matplotlib import gridspec
+
+            fig = plt.figure(figsize=(16, 14))
+            gs = gridspec.GridSpec(5, 2, height_ratios=[1.2, 1.0, 1.0, 1.2, 1.0])  
+            # Rows: RG, V2a, V1, V0v, MNP
+
+            # ramp_log = ramp_weight
+
+            ramp_t = np.asarray(ramp_weight["time"])
+            ramp_w = np.asarray(ramp_weight["weight"])
+
+            # ----------------------------------------------------------
+            # ROW 1: RG
+            # ----------------------------------------------------------
+            ax_rg_left  = fig.add_subplot(gs[0, 0])
+            ax_rg_right = fig.add_subplot(gs[0, 1])
+
+            ax_rg_left.plot(t, rg1_convolved * rg1_scale)
+            ax_rg_left.plot(t, rg2_convolved * rg2_scale)
+            ax_rg_left.set_title("RG Left")
+            ax_rg_left.legend(["RG_F ipsi", "RG_E ipsi"], fontsize="xx-small")
+
+            ax_rg_right.plot(t, contra_rg1_convolved * contra_rg1_scale, linestyle='--', alpha=0.7)
+            ax_rg_right.plot(t, contra_rg2_convolved * contra_rg2_scale, linestyle='--', alpha=0.7)
+            ax_rg_right.set_title("RG Right")
+            ax_rg_right.legend(["RG_F contra", "RG_E contra"], fontsize="xx-small")
+
+            # ----------------------------------------------------------
+            # ROW 2: V2a
+            # ----------------------------------------------------------
+            ax_v2a_left  = fig.add_subplot(gs[1, 0])
+            ax_v2a_right = fig.add_subplot(gs[1, 1])
+
+            ax_v2a_left.plot(t, v2a1_convolved * v2a1_scale, color="tab:green")
+            ax_v2a_left.set_title("V2a Left (ipsilateral)")
+            ax_v2a_left.set_ylabel("Freq (Hz)")
+
+            ax_v2a_right.plot(t, v2a_contra_convolved * contra_v2a_scale, color="tab:green")
+            ax_v2a_right.set_title("V2a Right (contralateral)")
+
+    
+            # ----------------------------------------------------------
+            # ROW 3: V0v - coloured by trace... 
+            # ----------------------------------------------------------
+            ax_v0v_left  = fig.add_subplot(gs[2, 0])
+            ax_v0v_right = fig.add_subplot(gs[2, 1])
+
+            lc_left = popfunc.plot_colored_trace(
+                ax=ax_v0v_left,
+                t=t,
+                y=v0v_convolved * v0v_scale,
+                weight_trace=ramp_w,
+                cmap="viridis", 
+            )
+
+  
+            ax_v0v_left.set_title("V0v Left (ipsilateral)")
+
+            lc_right = popfunc.plot_colored_trace(
+                ax=ax_v0v_right,
+                t=t,
+                y=v0v_contra_convolved * v0v_contra_scale,
+                weight_trace=ramp_w,
+                cmap="viridis",
+            )
+
+            ax_v0v_right.set_title("V0v Right (contralateral)")
+
+            # ----------------------------------------------------------
+            # ROW 4: V1
+            # ----------------------------------------------------------
+            
+            ax_v1_left = fig.add_subplot(gs[3, 0])
+            ax_v1_right = fig.add_subplot(gs[3, 1])
+
+            ax_v1_left.plot(t, v1_convolved * v1_scale, color="tab:blue")
+            ax_v1_left.set_title("V1 Left Hemicord (Ipsilateral)")
+
+            ax_v1_right.plot(t, v1_contra_convolved * v1_scale_contra, color="tab:red")
+            ax_v1_right.set_title("V1 Right Hemicord (Contralateral)")
+
+
+            # ----------------------------------------------------------
+            # ROW 4: MNP
+            # ----------------------------------------------------------
+            ax_mnp_left = fig.add_subplot(gs[4, 0])
+            ax_mnp_right = fig.add_subplot(gs[4, 1])
+
+            ax_mnp_left.plot(t, mnp1_convolved * mnp1_scale)
+            ax_mnp_left.plot(t, mnp2_convolved * mnp2_scale)
+            ax_mnp_left.legend(["FLX ipsi", "EXT ipsi"], fontsize="xx-small")
+            ax_mnp_left.set_title("MNP Left")
+            ax_mnp_left.set_xlabel("Time (ms)")
+
+            ax_mnp_right.plot(t, contra_mnp1_convolved * contra_mnp1_scale, linestyle='--', alpha=0.7)
+            ax_mnp_right.plot(t, contra_mnp2_convolved * contra_mnp2_scale, linestyle='--', alpha=0.7)
+            ax_mnp_right.legend(["FLX contra", "EXT contra"], fontsize="xx-small")
+            ax_mnp_right.set_title("MNP Right")
+            ax_mnp_right.set_xlabel("Time (ms)")
+
+            plt.tight_layout()
+
+            if nn.args['save_results']:
+                plt.savefig(nn.pathFigures + '/' + f"{label}_RG_V2a_V0v_MNP_combined.png",
+                            dpi=300, bbox_inches="tight")
+
+            plt.close()
+
+            # ==========================================================
+            # COLORBAR = ONLINE WEIGHT LEGEND
+            # ==========================================================
+            cbar = fig.colorbar(
+                lc_left,
+                ax=[ax_v0v_left, ax_v0v_right],
+                fraction=0.025,
+                pad=0.02
+            )
+            cbar.set_label(
+                f"{ramp_weight_name} (synaptic weight)",
+                fontsize=11
+            )
+
+             # ==========================================================
+            # FIGURE TITLE
+            # ==========================================================
+            fig.suptitle(
+                f"{label} | ONLINE RAMP | {ramp_weight_name}: "
+                f"{np.min(nn.online_ramp_weight_trace):.2f} → "
+                f"{np.max(nn.online_ramp_weight_trace):.2f}",
+                fontsize=14,
+                y=0.98
+            )
+
+            plt.tight_layout(rect=[0, 0, 1, 0.96])
+
+            if nn.args['save_results']:
+                plt.savefig(
+                    nn.pathFigures + f"/{label}_ONLINE_RAMP_RG_V2a_V0v_MNP.png",
+                    dpi=300,
+                    bbox_inches="tight"
+                )
+
+            plt.close()
+        else:
+            ramp_t = None
+            ramp_w = None
+
+
+        if ramp_type == "online" and ramp_weight is not None and nn.args['low_locomotion_v0d_left'] & nn.args['low_locomotion_v0d_right']:
+
+            print("===============================================")
+            print("[INFO] V0D Online Ramp Plotting In Progress...")
+            print("===============================================")
+            time.sleep(5)
+
+            # For ONLINE RAMP online ramp log = ramp_weight
+
+            ramp_t = np.asarray(ramp_weight["time"])
+            ramp_w = np.asarray(ramp_weight["weight"])
+
+
+            
+            import matplotlib.gridspec as gridspec
+
+            fig = plt.figure(figsize=(16, 12))
+            gs = gridspec.GridSpec(
+                3, 2,
+                height_ratios=[1.2, 1.0, 1.2]  # RG, V0d, MNP
+            )
+
+            fig.suptitle(
+                f"{label} | ONLINE RAMP | {ramp_weight_name}",
+                fontsize=14,
+                y=0.98
+            )
+
+            # ==========================================================
+            # ROW 1: RG
+            # ==========================================================
+            ax_rg_left  = fig.add_subplot(gs[0, 0])
+            ax_rg_right = fig.add_subplot(gs[0, 1])
+
+            ax_rg_left.plot(t, rg1_convolved * rg1_scale)
+            ax_rg_left.plot(t, rg2_convolved * rg2_scale)
+            ax_rg_left.legend(["RG_F ipsi", "RG_E ipsi"], fontsize="xx-small")
+
+            ax_rg_right.plot(
+                t,
+                contra_rg1_convolved * contra_rg1_scale,
+                linestyle="--", alpha=0.6
+            )
+            ax_rg_right.plot(
+                t,
+                contra_rg2_convolved * contra_rg2_scale,
+                linestyle="--", alpha=0.6
+            )
+            ax_rg_right.legend(["RG_F contra", "RG_E contra"], fontsize="xx-small")
+
+            # ==========================================================
+            # ROW 2: V0d (ONLINE COLOURED TRACE)
+            # ==========================================================
+            ax_v0d_left  = fig.add_subplot(gs[1, 0])
+            ax_v0d_right = fig.add_subplot(gs[1, 1])
+
+            lc_v0d_left = popfunc.plot_colored_trace(
+                ax=ax_v0d_left,
+                t=t,
+                y=v0d_convolved * v0d_scale,
+                weight_trace=ramp_w,
+                cmap="viridis",
+                lw=2.0
+            )
+            ax_v0d_left.set_title("V0d Ipsilateral (Left Inhibitory Output)")
+            ax_v0d_left.set_ylabel("Freq (Hz)")
+
+            lc_v0d_right = popfunc.plot_colored_trace(
+                ax=ax_v0d_right,
+                t=t,
+                y=v0d_contra_convolved * v0d_contra_scale,
+                weight_trace=ramp_w,
+                cmap="viridis",
+                lw=2.0
+            )
+            ax_v0d_right.set_title("V0d Contralateral (Cross-midline Inhibition)")
+
+            # ==========================================================
+            # ROW 3: MNP
+            # ==========================================================
+            ax_mnp_left  = fig.add_subplot(gs[2, 0])
+            ax_mnp_right = fig.add_subplot(gs[2, 1])
+
+            ax_mnp_left.plot(t, mnp1_convolved * mnp1_scale)
+            ax_mnp_left.plot(t, mnp2_convolved * mnp2_scale)
+            ax_mnp_left.legend(["FLX ipsi", "EXT ipsi"], fontsize="xx-small")
+
+            ax_mnp_right.plot(
+                t,
+                contra_mnp1_convolved * contra_mnp1_scale,
+                linestyle="--", alpha=0.6
+            )
+            ax_mnp_right.plot(
+                t,
+                contra_mnp2_convolved * contra_mnp2_scale,
+                linestyle="--", alpha=0.6
+            )
+            ax_mnp_right.legend(["FLX contra", "EXT contra"], fontsize="xx-small")
+
+            ax_mnp_left.set_xlabel("Time (ms)")
+            ax_mnp_right.set_xlabel("Time (ms)")
+
+            # ==========================================================
+            # COLORBAR = ONLINE WEIGHT LEGEND
+            # ==========================================================
+            cbar = fig.colorbar(
+                lc_v0d_left,
+                ax=[ax_v0d_left, ax_v0d_right],
+                fraction=0.035,
+                pad=0.03
+            )
+            cbar.set_label(
+                f"{ramp_weight_name} (online synaptic weight)",
+                fontsize=11
+            )
+
+            plt.tight_layout(rect=[0, 0, 1, 0.95])
+
+            if nn.args['save_results']:
+                plt.savefig(
+                    nn.pathFigures + f"/{label}_ONLINE_RAMP_RG_V0d_MNP.png",
+                    dpi=300,
+                    bbox_inches="tight"
+                )
+
+            plt.close()
+        else: 
+            ramp_t = None
+            ramp_w = None
 
 
 

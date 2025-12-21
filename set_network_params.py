@@ -432,6 +432,8 @@ class neural_network():
         
         # Arugments for scaling experiments 
         self.block_time = args['block_time']
+        self.ramp_duration = args['ramp_duration']
+        
         self.offline_ramp_experiment = args['offline_ramp_experiment'] 
         self.offline_ramp_weight = args['offline_ramp_weight']
 
@@ -542,4 +544,8 @@ class neural_network():
         else:
             id_ = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         path = 'saved_simulations' + '/' + 'P'+str(days)+'_D'+str(freq_test) + '/' + id_ 
-        pathFigures = 'saved_simulations' + '/' + 'P'+str(day
+        pathFigures = 'saved_simulations' + '/' + 'P'+str(days)+'_D'+str(freq_test) + '/' + id_ + '/Figures'
+        pathlib.Path(path).mkdir(parents=True, exist_ok=False)
+        pathlib.Path(pathFigures).mkdir(parents=True, exist_ok=False)
+        with open(path + '/args_' + id_ + '.yaml', 'w') as yamlfile:
+            #args['seed'] = simulation_
