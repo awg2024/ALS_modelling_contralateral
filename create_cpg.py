@@ -588,10 +588,7 @@ if nn.rgs_connected == 1:
 
     # ================================ END OF RIGHT SIDE CPG CODE ==========================================================
    
-
-
-        
-    ##  =============================== ONLINE RAMP ==========
+    ##  =============================== ONLINE RAMP =================================
     if nn.online_ramp_experiment == 1: 
 
         print("[INFO] Online Ramp Experiment is ON")
@@ -599,7 +596,7 @@ if nn.rgs_connected == 1:
         # ramp experiment params 
         w_start = 0.0
         w_end = 10.0
-        ramp_duration = nn.ramp_duration  # ms
+        ramp_duration = nn.ramp_duration  # ms, taking the config file. 
 
         # initialize BEFORE loop
         online_ramp_log = {
@@ -610,8 +607,10 @@ if nn.rgs_connected == 1:
         # retrieving connection
         connections = conn.synapses[nn.online_ramp_weight]
 
-        print(f"[DEBUG] Established connection variable: {connections}")
-        time.sleep(10) #  we might need to apply an np.mean function here. 
+        # print(f"[DEBUG] Established connection variable: {connections}")
+        # time.sleep(10) #  we might need to apply an np.mean function here. 
+
+        # implementing the current baseline input into the connection, contextualising the weight 
 
         # init sim 
         init_time = 50.0  # ms
@@ -627,7 +626,9 @@ if nn.rgs_connected == 1:
 
             t = nest.biological_time  # ms since start
 
-            # -------- RAMP LOGIC --------
+            # RAMP LOGIC 
+            # if t is less than the ramp duration we can alter the new_weight variable 
+            # the change in weight is determined by linear interpolation t/ramp_duration displaying the progression of the ramp experiment 
             if t <= ramp_duration:
                 new_weight = w_start + (w_end - w_start) * (t / ramp_duration)
             else:
@@ -687,6 +688,7 @@ if nn.rgs_connected == 1:
             if nn.fb_1a_ext:
                 nest.SetStatus(R_V1a_2.v1a_2_pg, {"rate": flx_1a_feedback_R})
 
+            # displaying the current duration of simulation and the assigned weight during the ONLINE ramp
             print(f"t = {t:.1f} ms, w = {new_weight:.3f}", end="\r")
 
 

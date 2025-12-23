@@ -74,7 +74,7 @@ def cpg_utils(nn,popfunc, conn,
 
     # --- DEBUG: Spike summary for V0 populations ---
     def debug_spike_report(name, senders, spiketimes):
-        print(f"\n===== DEBUG: {name} =====")
+        print(f"\n===== INFO : {name} =====")
 
         if spiketimes is None or len(spiketimes) == 0:
             print("No spiketimes array found.")
@@ -472,7 +472,10 @@ def cpg_utils(nn,popfunc, conn,
 
         
         t_stop = time.perf_counter()    
+        
+        # calculating ISF - Inter Spike Frequency. 
         print('Calculating ISF complete, taking ',int(t_stop-t_start),' seconds.')
+
         
         t_start = time.perf_counter()
         #Convolve spike data - RG populations
@@ -1189,7 +1192,7 @@ def cpg_utils(nn,popfunc, conn,
             gs = gridspec.GridSpec(5, 2, height_ratios=[1.2, 1.0, 1.0, 1.2, 1.0])  
             # Rows: RG, V2a, V1, V0v, MNP
 
-            # ramp_log = ramp_weight
+            # ramp_log = ramp_weight, this is passed differently depending on the online or offline access. 
 
             ramp_t = np.asarray(ramp_weight["time"])
             ramp_w = np.asarray(ramp_weight["weight"])
@@ -1234,7 +1237,7 @@ def cpg_utils(nn,popfunc, conn,
                 ax=ax_v0v_left,
                 t=t,
                 y=v0v_convolved * v0v_scale,
-                weight_trace=ramp_w,
+                weights=ramp_w,
                 cmap="viridis", 
             )
 
@@ -1245,7 +1248,7 @@ def cpg_utils(nn,popfunc, conn,
                 ax=ax_v0v_right,
                 t=t,
                 y=v0v_contra_convolved * v0v_contra_scale,
-                weight_trace=ramp_w,
+                weights=ramp_w,
                 cmap="viridis",
             )
 
@@ -1310,8 +1313,8 @@ def cpg_utils(nn,popfunc, conn,
             # ==========================================================
             fig.suptitle(
                 f"{label} | ONLINE RAMP | {ramp_weight_name}: "
-                f"{np.min(nn.online_ramp_weight_trace):.2f} → "
-                f"{np.max(nn.online_ramp_weight_trace):.2f}",
+                f"{np.min(ramp_w):.2f} → "
+                f"{np.max(ramp_w):.2f}",
                 fontsize=14,
                 y=0.98
             )
@@ -1384,6 +1387,8 @@ def cpg_utils(nn,popfunc, conn,
             # ==========================================================
             # ROW 2: V0d (ONLINE COLOURED TRACE)
             # ==========================================================
+            
+             #  linked to plot_colored_trace 
             ax_v0d_left  = fig.add_subplot(gs[1, 0])
             ax_v0d_right = fig.add_subplot(gs[1, 1])
 
@@ -1391,7 +1396,7 @@ def cpg_utils(nn,popfunc, conn,
                 ax=ax_v0d_left,
                 t=t,
                 y=v0d_convolved * v0d_scale,
-                weight_trace=ramp_w,
+                weights=ramp_w,
                 cmap="viridis",
                 lw=2.0
             )
@@ -1402,7 +1407,7 @@ def cpg_utils(nn,popfunc, conn,
                 ax=ax_v0d_right,
                 t=t,
                 y=v0d_contra_convolved * v0d_contra_scale,
-                weight_trace=ramp_w,
+                weights=ramp_w,
                 cmap="viridis",
                 lw=2.0
             )

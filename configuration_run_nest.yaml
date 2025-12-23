@@ -4,14 +4,13 @@ seed: 3141774 #Use 0 for a random seed, Control seed: 3141774
 t_steps: 2000 # use 10000 in normal sims, 2000 lowest sim time without errors 
 
 # 0FFLINE & ONLINE RAMP EXPERIMENT PARAMS 
-ramp_duration: 10000 # length of ramp experiment 
+ramp_duration: 2000 # length of ramp experiment for both ONLINE and OFFLINE experiments 
 block_time: 2000 # used for offline ramp experiments 
-offline_ramp_experiment: 1 # takes the block_time then scales for EACH simulation 
+offline_ramp_experiment: 0 # takes the block_time then scales for EACH simulation 
 offline_ramp_weight: 'custom_v0d_rg_inh' # specified weight to scale for offline scaling 
-online_ramp_experiment: 0 # taking t_step specified time scaling up DURING the simulation 
+online_ramp_experiment: 1 # taking ramp_duration specified time scaling up DURING the simulation 
 online_ramp_weight: 'custom_v0d_rg_inh' # specified weight to scale for online scaling 
 # ======================================================
-
 
 optimizing: 0 #Use 1 when running Bayesian optimization to find parameters
 #Define disease progression
@@ -44,11 +43,11 @@ v2a_mn_intact: 0 #Use 1 to preserve V2a and MN populations at P112
 # LOW LOCOMOTION - CONTRALATERAL PROJECTIONS  
 # connections of v0d - being excited by RG_Flx and inhibiting OPPOSITE RG_FLX 
 # connections of v0v - RG_F exciting V2a. V2a exciting V0v. V0v contralaterally projecting and inhibiting inhib RG_Flx 
-low_locomotion_v0d_right: 0
-low_locomotion_v0d_left: 0
+low_locomotion_v0d_right: 1
+low_locomotion_v0d_left: 1
 
-low_locomotion_v0v_right: 1
-low_locomotion_v0v_left: 1
+low_locomotion_v0v_right: 0
+low_locomotion_v0v_left: 0
 
 # HIGH LOCOMOTION - CONTRALATERAL PROJECTIONS  
 # connections of v0d - being excited by RG_Flx and inhibiting OPPOSITE RG_FLX 
@@ -104,4 +103,4 @@ phase_ordered_plot: 1
 raster_plot: 0
 rate_coded_plot: 1
 spike_distribution_plot: 0
-heatmap_recruitment_plot: 1 
+heatmap_recruitment_plot: 0 

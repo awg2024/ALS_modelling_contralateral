@@ -548,4 +548,6 @@ class neural_network():
         pathlib.Path(path).mkdir(parents=True, exist_ok=False)
         pathlib.Path(pathFigures).mkdir(parents=True, exist_ok=False)
         with open(path + '/args_' + id_ + '.yaml', 'w') as yamlfile:
-            #args['seed'] = simulation_
+            #args['seed'] = simulation_config['seed']
+            yaml.dump(args, yamlfile)
+      

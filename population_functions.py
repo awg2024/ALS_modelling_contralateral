@@ -90,13 +90,30 @@ def single_neuron_spikes(neuron_number,population):
 	    spike_time[spike_time_index]=spike_data[j]        
 	return spike_time
 
-def single_neuron_spikes_binary(neuron_number,population):
-	spike_time = [0]*int(nn.sim_time/nn.time_resolution)
-	spike_data = population[0][neuron_number]
-	for j in range(spike_data.shape[0]):
-	    spike_time_index = int(spike_data[j]*(1/nn.time_resolution))-1
-	    spike_time[spike_time_index]=1        
-	return spike_time
+def single_neuron_spikes_binary(neuron_number, population):
+    
+    n_bins = int(nn.sim_time / nn.time_resolution)
+
+    # ALWAYS initialize full-length vector
+    spike_time = np.zeros(n_bins, dtype=np.int8)
+
+    spike_times = population[neuron_number]
+
+    # Ensure spike_times is a 1D iterable of scalars
+    spike_times = np.asarray(spike_times).flatten()
+
+    for t in spike_times:
+        
+        # t is now guaranteed scalar
+        spike_time_index = int(t / nn.time_resolution)
+        
+        if 0 <= spike_time_index < n_bins:
+            spike_time[spike_time_index] = 1
+        # else: silently ignore or warn once
+
+    return spike_time
+
+
 '''
 def calculate_interspike_frequency(neuron_count, output_spiketimes):
     frequencies = []
@@ -255,7 +272,10 @@ def smooth(data, sd):
 
 def convolve_spiking_activity(population_size,population):
     time_steps = int(nn.sim_time/nn.time_resolution) 
+    
+    # calling the single_neuron_spikes_binary - doesn't match exactly 
     binary_spikes = np.vstack([single_neuron_spikes_binary(i, population) for i in range(population_size)])
+    
     binned_spikes = sliding_time_window_matrix(binary_spikes,nn.time_window)
     smoothed_spikes = smooth(binned_spikes, nn.convstd_rate)
     time_vector = np.arange(binned_spikes.shape[1]) * nn.time_resolution
