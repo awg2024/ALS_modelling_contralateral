@@ -91,25 +91,26 @@ def single_neuron_spikes(neuron_number,population):
 	return spike_time
 
 def single_neuron_spikes_binary(neuron_number, population):
-    
     n_bins = int(nn.sim_time / nn.time_resolution)
-
-    # ALWAYS initialize full-length vector
     spike_time = np.zeros(n_bins, dtype=np.int8)
 
-    spike_times = population[neuron_number]
+    # Handle population indexing safely
+    spike_data = population[neuron_number]  # assuming population[neuron_number] gives array/list of spike times
 
-    # Ensure spike_times is a 1D iterable of scalars
-    spike_times = np.asarray(spike_times).flatten()
+    # Ensure iterable
+    if np.isscalar(spike_data):
+        spike_data = [spike_data]
+    else:
+        spike_data = np.ravel(spike_data)  # flatten in case of nested arrays
 
-    for t in spike_times:
-        
-        # t is now guaranteed scalar
-        spike_time_index = int(t / nn.time_resolution)
-        
-        if 0 <= spike_time_index < n_bins:
-            spike_time[spike_time_index] = 1
-        # else: silently ignore or warn once
+    for t in spike_data:
+        try:
+            spike_time_index = int(t / nn.time_resolution)
+            if 0 <= spike_time_index < n_bins:
+                spike_time[spike_time_index] = 1
+        except Exception:
+            # Skip malformed entries
+            continue
 
     return spike_time
 
@@ -332,3 +333,33 @@ def plot_colored_trace(ax, t, y, weights, cmap="viridis", lw=2):
     ax.set_xlim(t[0], t[-1])
 
     return lc
+
+def spike_report(name, senders, spiketimes):
+    
+    print(f"\n===== SPIKE REPORT : {name} =====")
+
+    if spiketimes is None or len(spiketimes) == 0:
+        print("No spiketimes array found.")
+        return
+
+    try:
+        # spiketimes[0] = list of spike lists per neuron
+        flat_spikes = sum(len(st) for st in spiketimes[0])
+        active_neurons = sum(1 for st in spiketimes[0] if len(st) > 0)
+        total_neurons = len(spiketimes[0])
+
+    except Exception as e:
+        print("Error while parsing spiketimes:", e)
+        print("Raw spiketimes:", spiketimes)
+        return
+
+    print(f"Total neurons: {total_neurons}")
+    print(f"Active neurons: {active_neurons}")
+    print(f"Silent neurons: {total_neurons - active_neurons}")
+    print(f"Total spikes: {flat_spikes}")
+
+
+    if flat_spikes == 0:
+        print(" No spikes detected — population is SILENT.")
+    else:
+        print("Spiking OK ✔️")

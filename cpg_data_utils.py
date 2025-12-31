@@ -63,43 +63,13 @@ def cpg_utils(nn,popfunc, conn,
     senders_exc_tonic2,spiketimes_exc_tonic2 = popfunc.read_spike_data(rg2.spike_detector_rg_exc_tonic)
     senders_inh_tonic2,spiketimes_inh_tonic2 = popfunc.read_spike_data(rg2.spike_detector_rg_inh_tonic)
 
-    #Read spike data - V2a excitatory interneurons
+    # Read spike data - V2a excitatory interneurons
     senders_exc_inter_tonic1,spiketimes_exc_inter_tonic1 = popfunc.read_spike_data(exc1.spike_detector_exc_inter_tonic)
     senders_exc_inter_tonic2,spiketimes_exc_inter_tonic2 = popfunc.read_spike_data(exc2.spike_detector_exc_inter_tonic)
 
     # --- CONTRALATERAL V2a POPULATIONS ---
     senders_contra_exc_inter_tonic1, spiketimes_contra_exc_inter_tonic1 = popfunc.read_spike_data(contra_exc1.spike_detector_exc_inter_tonic)
     senders_contra_exc_inter_tonic2, spiketimes_contra_exc_inter_tonic2 = popfunc.read_spike_data(contra_exc2.spike_detector_exc_inter_tonic)
-
-
-    # --- DEBUG: Spike summary for V0 populations ---
-    def debug_spike_report(name, senders, spiketimes):
-        print(f"\n===== INFO : {name} =====")
-
-        if spiketimes is None or len(spiketimes) == 0:
-            print("No spiketimes array found.")
-            return
-
-        try:
-            # spiketimes[0] = list of spike lists per neuron
-            flat_spikes = sum(len(st) for st in spiketimes[0])
-            active_neurons = sum(1 for st in spiketimes[0] if len(st) > 0)
-            total_neurons = len(spiketimes[0])
-        except Exception as e:
-            print("Error while parsing spiketimes:", e)
-            print("Raw spiketimes:", spiketimes)
-            return
-
-        print(f"Total neurons: {total_neurons}")
-        print(f"Active neurons: {active_neurons}")
-        print(f"Silent neurons: {total_neurons - active_neurons}")
-        print(f"Total spikes: {flat_spikes}")
-
-        if flat_spikes == 0:
-            print("⚠️  No spikes detected — population is SILENT.")
-        else:
-            print("Spiking OK ✔️")
-
 
     #Read spike data - interneurons
     senders_V0c_1,spiketimes_V0c_1 = popfunc.read_spike_data(V0c_1.spike_detector)
@@ -111,21 +81,14 @@ def cpg_utils(nn,popfunc, conn,
 
 
     senders_V0d_contra, spiketimes_V0d_contra = popfunc.read_spike_data(V0d_contra.spike_detector)
-    senders_V0d, spiketimes_V0d = popfunc.read_spike_data(V0d.spike_detector)
     
+    senders_V0d, spiketimes_V0d = popfunc.read_spike_data(V0d.spike_detector)
     senders_V0v, spiketimes_V0v = popfunc.read_spike_data(V0v.spike_detector)
+    
     senders_V0v_contra, spiketimes_V0v_contra = popfunc.read_spike_data(V0v_contra.spike_detector)
 
-    # --- DEBUG: Spike summary for V0 populations ---
-    # ------------------ RUN DEBUGGING ------------------
-    debug_spike_report("V0d IPSILATERAL",    senders_V0d,        spiketimes_V0d)
-    debug_spike_report("V0d CONTRALATERAL",  senders_V0d_contra, spiketimes_V0d_contra)
-
-    debug_spike_report("V0v IPSILATERAL",    senders_V0v,        spiketimes_V0v)
-    debug_spike_report("V0v CONTRALATERAL",  senders_V0v_contra, spiketimes_V0v_contra)
-
-
     # Read spike data — contralateral RG and MNP
+
     # --- CONTRALATERAL RG POPULATIONS (full symmetry to ipsilateral) ---
 
     # Excitatory bursting
@@ -148,10 +111,44 @@ def cpg_utils(nn,popfunc, conn,
     senders_contra_mnp1, spiketimes_contra_mnp1 = popfunc.read_spike_data(contra_mnp1.spike_detector_motor)
     senders_contra_mnp2, spiketimes_contra_mnp2 = popfunc.read_spike_data(contra_mnp2.spike_detector_motor)
 
-    
     #Read spike data - MNPs
     senders_mnp1,spiketimes_mnp1 = popfunc.read_spike_data(mnp1.spike_detector_motor)
     senders_mnp2,spiketimes_mnp2 = popfunc.read_spike_data(mnp2.spike_detector_motor)
+
+
+    # ========================== SPIKE REPORT CUSTOM POPFUNC FOR DEBUGGING TERMINAL INFO ==============================
+
+    if nn.args['low_locomotion_v0d_right'] and nn.args['low_locomotion_v0d_left']:
+
+        popfunc.spike_report("RG FLX IPSILATERAL", senders_rc_1,       spiketimes_rc_1)
+        popfunc.spike_report("V0d IPSILATERAL",    senders_V0d,        spiketimes_V0d)
+        
+        popfunc.spike_report("RG FLX CONTRALATERAL EXC BURST", senders_contra_rg_exc_burst1, spiketimes_contra_rg_exc_burst1)
+        popfunc.spike_report("V0d CONTRALATERAL",  senders_V0d_contra, spiketimes_V0d_contra)
+
+        popfunc.spike_report("IPSILATERAL MNP FLX", senders_mnp1,spiketimes_mnp1)
+        popfunc.spike_report("IPSILATERAL MNP EXT",  senders_mnp2, spiketimes_mnp2)
+
+        popfunc.spike_report("CONTRALATERAL MNP FLX", senders_contra_mnp1, spiketimes_contra_mnp1)
+        popfunc.spike_report("CONTRALATERAL MNP FLX", senders_contra_mnp2, spiketimes_contra_mnp2)
+        
+
+    if nn.args['low_locomotion_v0v_right'] and nn.args['low_locomotion_v0v_right']:
+
+        popfunc.spike_report("RG FLX IPSILATERAL", senders_rc_1,       spiketimes_rc_1)
+        popfunc.spike_report("V2A IPSILATERAL", senders_exc_inter_tonic1, spiketimes_exc_inter_tonic1)
+        popfunc.spike_report("V0v IPSILATERAL",    senders_V0v,        spiketimes_V0v)
+        popfunc.spike_report("RG FLX CONTRALATERAL EXC BURST", senders_contra_rg_exc_burst1, spiketimes_contra_rg_exc_burst1)
+
+        popfunc.spike_report("V2A CONTRALATERAL", senders_contra_exc_inter_tonic1, spiketimes_contra_exc_inter_tonic1)
+        popfunc.spike_report("V0v CONTRALATERAL",  senders_V0v_contra, spiketimes_V0v_contra)
+
+        popfunc.spike_report("IPSILATERAL MNP FLX", senders_mnp1,spiketimes_mnp1)
+        popfunc.spike_report("IPSILATERAL MNP EXT",  senders_mnp2, spiketimes_mnp2)
+
+        popfunc.spike_report("CONTRALATERAL MNP FLX", senders_contra_mnp1, spiketimes_contra_mnp1)
+        popfunc.spike_report("CONTRALATERAL MNP FLX", senders_contra_mnp2, spiketimes_contra_mnp2)
+        
 
     if nn.fb_rg_flx == 1:
         #Read spike data - poisson generators
@@ -268,6 +265,7 @@ def cpg_utils(nn,popfunc, conn,
         spike_bins_rg_inh2 = popfunc.rate_code_spikes(nn.ext_inh_bursting_count,spiketimes_inh2)
         spike_bins_rg_exc_tonic2 = popfunc.rate_code_spikes(nn.ext_exc_tonic_count,spiketimes_exc_tonic2)
         spike_bins_rg_inh_tonic2 = popfunc.rate_code_spikes(nn.ext_inh_tonic_count,spiketimes_inh_tonic2)
+        
         spike_bins_rg2 = spike_bins_rg_exc2+spike_bins_rg_exc_tonic2+spike_bins_rg_inh2+spike_bins_rg_inh_tonic2
         spike_bins_rg2_true = spike_bins_rg2
         print('Max spike count RG_E: ',max(spike_bins_rg2))
@@ -277,10 +275,22 @@ def cpg_utils(nn,popfunc, conn,
         spike_bins_exc_inter_tonic1 = popfunc.rate_code_spikes(nn.v2a_tonic_pop_size,spiketimes_exc_inter_tonic1)
         spike_bins_exc_inter1 = spike_bins_exc_inter_tonic1
         spike_bins_exc_inter1_true = spike_bins_exc_inter1
+        
         spike_bins_exc_inter1 = (spike_bins_exc_inter1-np.min(spike_bins_exc_inter1))/(np.max(spike_bins_exc_inter1)-np.min(spike_bins_exc_inter1))
         spike_bins_exc_inter_tonic2 = popfunc.rate_code_spikes(nn.v2a_tonic_pop_size,spiketimes_exc_inter_tonic2)
         spike_bins_exc_inter2 = spike_bins_exc_inter_tonic2
         spike_bins_exc_inter2_true = spike_bins_exc_inter2
+
+        # V2a left
+        print('Max spike count V2a Left: ', max(spike_bins_exc_inter1_true))
+        print('Total spikes V2a Left: ', sum(spike_bins_exc_inter1_true))
+        print('Mean spike count V2a Left: ', np.mean(spike_bins_exc_inter1_true))
+
+        # V2a right
+        print('Max spike count V2a Right: ', max(spike_bins_exc_inter2_true))
+        print('Total spikes V2a Right: ', sum(spike_bins_exc_inter2_true))
+        print('Mean spike count V2a Right: ', np.mean(spike_bins_exc_inter2_true))
+
         spike_bins_exc_inter2 = (spike_bins_exc_inter2-np.min(spike_bins_exc_inter2))/(np.max(spike_bins_exc_inter2)-np.min(spike_bins_exc_inter2))
 
         spike_bins_V0c_1 = popfunc.rate_code_spikes(nn.v0c_pop_size,spiketimes_V0c_1)
@@ -304,26 +314,40 @@ def cpg_utils(nn,popfunc, conn,
         
         spike_bins_mnp1 = popfunc.rate_code_spikes(nn.num_motor_neurons,spiketimes_mnp1)
         spike_bins_mnp1_true = spike_bins_mnp1
-        print('Max spike count FLX: ',max(spike_bins_mnp1))
+
+        print('Max spike count MNP FLX: ',max(spike_bins_mnp1_true))
+        print('Total spike count MNP FLX: ', sum(spike_bins_mnp1_true))
+        print('Mean spike count MNP FLX: ', np.mean(spike_bins_mnp1_true))
+
+
         spike_bins_mnp1 = (spike_bins_mnp1-np.min(spike_bins_mnp1))/(np.max(spike_bins_mnp1)-np.min(spike_bins_mnp1))
         spike_bins_mnp2 = popfunc.rate_code_spikes(nn.num_motor_neurons,spiketimes_mnp2)
         spike_bins_mnp2_true = spike_bins_mnp2
-        print('Max spike count EXT: ',max(spike_bins_mnp2))
+
+        print('Max spike count MNP EXT: ',max(spike_bins_mnp2_true))
+        print('Total spike count MNP EXT: ', sum(spike_bins_mnp2_true))
+        print('Mean spike count MNP EXT: ', np.mean(spike_bins_mnp2_true))
+
         spike_bins_mnp2 = (spike_bins_mnp2-np.min(spike_bins_mnp2))/(np.max(spike_bins_mnp2)-np.min(spike_bins_mnp2))
         spike_bins_mnps = spike_bins_mnp1+spike_bins_mnp2
 
         if nn.rgs_connected==1:
             spike_bins_inh_inter_tonic1 = popfunc.rate_code_spikes(nn.num_inh_inter_tonic_v2b,spiketimes_inh_inter_tonic1)
             spike_bins_inh_inter1 = spike_bins_inh_inter_tonic1
+            
             spike_bins_inh_inter1_true = spike_bins_inh_inter1
             spike_bins_inh_inter1 = (spike_bins_inh_inter1-np.min(spike_bins_inh_inter1))/(np.max(spike_bins_inh_inter1)-np.min(spike_bins_inh_inter1))
+            
             spike_bins_inh_inter_tonic2 = popfunc.rate_code_spikes(nn.num_inh_inter_tonic_v1,spiketimes_inh_inter_tonic2)
             spike_bins_inh_inter2 = spike_bins_inh_inter_tonic2
+            
             spike_bins_inh_inter2_true = spike_bins_inh_inter2
             spike_bins_inh_inter2 = (spike_bins_inh_inter2-np.min(spike_bins_inh_inter2))/(np.max(spike_bins_inh_inter2)-np.min(spike_bins_inh_inter2))
             
         t_stop = time.perf_counter()
         print('Rate coded activity complete, taking ',int(t_stop-t_start),' seconds.')
+
+        print('Moving onto plotting functions...')
 
         #Plot rate-coded output
         t = np.arange(0,len(spike_bins_rg1),1)
@@ -421,46 +445,7 @@ def cpg_utils(nn,popfunc, conn,
         rginh1_tonic_freq, rginh1_tonic_times = popfunc.calculate_interspike_frequency(nn.flx_inh_tonic_count,spiketimes_inh_tonic1)
         rginh2_tonic_freq, rginh2_tonic_times = popfunc.calculate_interspike_frequency(nn.ext_inh_tonic_count,spiketimes_inh_tonic2)
 
-        v2a1_freq, v2a1_times = popfunc.calculate_interspike_frequency(nn.v2a_tonic_pop_size,spiketimes_exc_inter_tonic1)
-        v2a2_freq, v2a2_times =popfunc.calculate_interspike_frequency(nn.v2a_tonic_pop_size,spiketimes_exc_inter_tonic2)
-
-        # --- CONTRALATERAL V2a frequencies ---
-        contra_v2a1_freq, contra_v2a1_times = popfunc.calculate_interspike_frequency(nn.v2a_tonic_pop_size, spiketimes_contra_exc_inter_tonic1)
-        contra_v2a2_freq, contra_v2a2_times = popfunc.calculate_interspike_frequency(nn.v2a_tonic_pop_size, spiketimes_contra_exc_inter_tonic2)
-
-        
-        v0c1_freq, v0c1_times = popfunc.calculate_interspike_frequency(nn.v0c_pop_size,spiketimes_V0c_1)
-        v0c2_freq, v0c2_times = popfunc.calculate_interspike_frequency(nn.v0c_pop_size,spiketimes_V0c_2)
-
-        v0v_freq, v0v_times = popfunc.calculate_interspike_frequency(nn.v0v_pop_size,spiketimes_V0v)
-        v0d_freq, v0d_times = popfunc.calculate_interspike_frequency(nn.v0d_pop_size,spiketimes_V0d)
-
-        v0d_contra_freq, v0d_contra_times = popfunc.calculate_interspike_frequency(nn.v0d_pop_size, spiketimes_V0d_contra)
-        v0v_contra_freq, v0v_contra_times = popfunc.calculate_interspike_frequency(nn.v0v_pop_size, spiketimes_V0v_contra)
-
-
-        v1a1_freq, v1a1_times = popfunc.calculate_interspike_frequency(nn.v1a_pop_size,spiketimes_V1a_1)
-        v1a2_freq, v1a2_times = popfunc.calculate_interspike_frequency(nn.v1a_pop_size,spiketimes_V1a_2)
-        
-        rc1_freq, rc1_times = popfunc.calculate_interspike_frequency(nn.rc_pop_size,spiketimes_rc_1)
-        rc2_freq, rc2_times = popfunc.calculate_interspike_frequency(nn.rc_pop_size,spiketimes_rc_2)
-        
-        if nn.rgs_connected:
-            v2b_freq, v2b_times =popfunc.calculate_interspike_frequency(nn.num_inh_inter_tonic_v2b,spiketimes_inh_inter_tonic1)
-            v1_freq, v1_times =popfunc.calculate_interspike_frequency(nn.num_inh_inter_tonic_v1,spiketimes_inh_inter_tonic2)
-            v1_contra_freq, v1_contra_times = popfunc.calculate_interspike_frequency(nn.num_inh_inter_tonic_v1,spikestimes_inh_inter_tonic2_contra)
-     
-            # Motor neuron instantaneous spiking frequencies
-        mnp1_freq, mnp1_times = popfunc.calculate_interspike_frequency(
-            nn.num_motor_neurons, spiketimes_mnp1
-        )
-        mnp2_freq, mnp2_times = popfunc.calculate_interspike_frequency(
-            nn.num_motor_neurons, spiketimes_mnp2
-        )
-
-
-
-        print("\n===  Spiking Frequencies (Hz) ===")
+        # terminal information output  
         print(f"RG1 Exc (bursting): {np.nanmean([np.nanmean(f) for f in rgexc1_bursting_freq]):.2f} Hz")
         print(f"RG2 Exc (bursting): {np.nanmean([np.nanmean(f) for f in rgexc2_bursting_freq]):.2f} Hz")
 
@@ -470,12 +455,75 @@ def cpg_utils(nn,popfunc, conn,
         print(f"RG1 Inh (bursting): {np.nanmean([np.nanmean(f) for f in rginh1_bursting_freq]):.2f} Hz")
         print(f"RG2 Inh (bursting): {np.nanmean([np.nanmean(f) for f in rginh2_bursting_freq]):.2f} Hz")
 
+        v2a1_freq, v2a1_times = popfunc.calculate_interspike_frequency(nn.v2a_tonic_pop_size,spiketimes_exc_inter_tonic1)
+        v2a2_freq, v2a2_times =popfunc.calculate_interspike_frequency(nn.v2a_tonic_pop_size,spiketimes_exc_inter_tonic2)
+
+        print(f"V2a (Ipsilateral Flexor-Connected): {np.nanmean([np.nanmean(f) for f in v2a1_freq]):.2f} Hz")
+
+        # --- CONTRALATERAL V2a frequencies ---
+        contra_v2a1_freq, contra_v2a1_times = popfunc.calculate_interspike_frequency(nn.v2a_tonic_pop_size, spiketimes_contra_exc_inter_tonic1)
+        contra_v2a2_freq, contra_v2a2_times = popfunc.calculate_interspike_frequency(nn.v2a_tonic_pop_size, spiketimes_contra_exc_inter_tonic2)
+
+        print(f"V2a (Contralateral Flexor-Connected): {np.nanmean([np.nanmean(f) for f in contra_v2a1_freq]):.2f} Hz")
+        
+        v0c1_freq, v0c1_times = popfunc.calculate_interspike_frequency(nn.v0c_pop_size,spiketimes_V0c_1)
+        v0c2_freq, v0c2_times = popfunc.calculate_interspike_frequency(nn.v0c_pop_size,spiketimes_V0c_2)
+
+        v0v_freq, v0v_times = popfunc.calculate_interspike_frequency(nn.v0v_pop_size,spiketimes_V0v)
+        v0d_freq, v0d_times = popfunc.calculate_interspike_frequency(nn.v0d_pop_size,spiketimes_V0d)
+        
+        print(f"V0v (Ipsilateral): {np.nanmean([np.nanmean(f) for f in v0v_freq]):.2f} Hz")
+        print(f"V0d (Ipsilateral): {np.nanmean([np.nanmean(f) for f in v0d_freq]):.2f} Hz")
+
+        v0d_contra_freq, v0d_contra_times = popfunc.calculate_interspike_frequency(nn.v0d_pop_size, spiketimes_V0d_contra)
+        v0v_contra_freq, v0v_contra_times = popfunc.calculate_interspike_frequency(nn.v0v_pop_size, spiketimes_V0v_contra)
+
+        print(f"V0v (Contralateral): {np.nanmean([np.nanmean(f) for f in v0v_contra_freq]):.2f} Hz")
+        print(f"V0d (Contralateral): {np.nanmean([np.nanmean(f) for f in v0d_contra_freq]):.2f} Hz")
+
+        v1a1_freq, v1a1_times = popfunc.calculate_interspike_frequency(nn.v1a_pop_size,spiketimes_V1a_1)
+        v1a2_freq, v1a2_times = popfunc.calculate_interspike_frequency(nn.v1a_pop_size,spiketimes_V1a_2)
+        
+        rc1_freq, rc1_times = popfunc.calculate_interspike_frequency(nn.rc_pop_size,spiketimes_rc_1)
+        rc2_freq, rc2_times = popfunc.calculate_interspike_frequency(nn.rc_pop_size,spiketimes_rc_2)
+        
+        if nn.rgs_connected:
+            v2b_freq, v2b_times =popfunc.calculate_interspike_frequency(nn.num_inh_inter_tonic_v2b,spiketimes_inh_inter_tonic1)
+
+            v1_freq, v1_times =popfunc.calculate_interspike_frequency(nn.num_inh_inter_tonic_v1,spiketimes_inh_inter_tonic2)
+
+            print(f"V1 (ipsilateral): {np.nanmean([np.nanmean(f) for f in v1_freq]):.2f} Hz")
+
+            v1_contra_freq, v1_contra_times = popfunc.calculate_interspike_frequency(nn.num_inh_inter_tonic_v1,spikestimes_inh_inter_tonic2_contra)
+     
+            print(f"V1 (contralateral): {np.nanmean([np.nanmean(f) for f in v1_contra_freq]):.2f} Hz")
+
+            # Motor neuron instantaneous spiking frequencies
+        mnp1_freq, mnp1_times = popfunc.calculate_interspike_frequency(
+            nn.num_motor_neurons, spiketimes_mnp1
+        )
+        mnp2_freq, mnp2_times = popfunc.calculate_interspike_frequency(
+            nn.num_motor_neurons, spiketimes_mnp2
+        )
+
+        print(f"Motor Neuron Pool (Ipsilateral) (Flexor): {np.nanmean([np.nanmean(f) for f in mnp1_freq]):.2f} Hz")
+        print(f"Motor Neuron Pool (Ipsilateral) (Extensor): {np.nanmean([np.nanmean(f) for f in mnp2_freq]):.2f} Hz")
+
+        mnp1_contra_freq, mnp1_contra_times = popfunc.calculate_interspike_frequency(
+            nn.num_motor_neurons, spiketimes_contra_mnp1)
+        
+        mnp2_contra_freq, mnp2_contra_times = popfunc.calculate_interspike_frequency(
+            nn.num_motor_neurons, spiketimes_contra_mnp2)
+        
+        print(f"Motor Neuron Pool (Contralateral) (Flexor): {np.nanmean([np.nanmean(f) for f in mnp1_contra_freq]):.2f} Hz")
+        print(f"Motor Neuron Pool (Contralateral) (Extensor): {np.nanmean([np.nanmean(f) for f in mnp2_contra_freq]):.2f} Hz")
         
         t_stop = time.perf_counter()    
         
         # calculating ISF - Inter Spike Frequency. 
-        print('Calculating ISF complete, taking ',int(t_stop-t_start),' seconds.')
+        print('Calculating Inter-Spiking Frequency complete, taking ',int(t_stop-t_start),' seconds.')
 
+        print('Moving onto Convolving Spiking activity -- Taking a spike train (series of discrete spikes) and smoothing it into a continuous signal')
         
         t_start = time.perf_counter()
         #Convolve spike data - RG populations
@@ -570,7 +618,6 @@ def cpg_utils(nn,popfunc, conn,
         ]).mean(axis=0)
 
 
-
         # Convolve contralateral MNP
         contra_mnp1_convolved, _, _ = popfunc.convolve_spiking_activity(nn.num_motor_neurons, spiketimes_contra_mnp1)
         contra_mnp2_convolved, _, _ = popfunc.convolve_spiking_activity(nn.num_motor_neurons, spiketimes_contra_mnp2)
@@ -595,7 +642,9 @@ def cpg_utils(nn,popfunc, conn,
         
         print('Max firing rate of a Flx RG (ISF):',round(rg1_isf_max,2),'Ext RG:',round(rg2_isf_max,2))
         print('Max firing rate of a Flx RG (Convolved):',round(rg1_conv_max,2),'Ext RG:',round(rg2_conv_max,2))
+        
         print('Convolved max is',round(rg1_scale,3),round(rg2_scale,3), 'times the size of ISF max (Flx, Ext).')
+
         
         v2b_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v2b_freq]))
         v1_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v1_freq]))
@@ -604,12 +653,14 @@ def cpg_utils(nn,popfunc, conn,
         v2b_conv_max = np.nanmax(v2b_convolved)
         v1_conv_max = np.nanmax(v1_convolved)
         v1_contra_conv_max = np.nanmax(v1_contra_convolved)
+                
         v2b_scale = v2b_isf_max / v2b_conv_max
      
 
         v1_scale = v1_isf_max / v1_conv_max
         v1_scale_contra = v1_contra_isf_max / v1_contra_conv_max 
 
+        print('Max Firing rate of V1 (Ipsilateral) (ISF):', round(v1_isf_max,2), ' Max Firing rate of V1 (Contralateral) (ISF)', round(v1_contra_isf_max,2))
         
         v2a1_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v2a1_freq]))
         v2a2_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v2a2_freq]))
@@ -647,6 +698,9 @@ def cpg_utils(nn,popfunc, conn,
         V0d_contra_conv_max = np.nanmax(v0d_contra_convolved)
         v0v_contra_isf_max = np.nanmax([np.nanmean(f) for f in v0v_contra_freq])
 
+        print('Max Firing rate of V0D (Ipsilateral) (ISF):', round(v0d_isf_max,2), ' Max Firing rate of V0D (Contralateral) (ISF)', round(v0d_contra_isf_max,2))
+        print('Max Firing rate of V0V (Ipsilateral) (ISF):', round(v0v_isf_max,2), ' Max Firing rate of V0D (Contralateral) (ISF)', round(v0v_contra_isf_max,2))
+
         v0v_contra_scale = v0v_contra_isf_max / np.nanmax(v0v_contra_convolved)
         v0v_scale = v0v_isf_max / V0v_conv_max
         v0d_scale = v0d_isf_max / V0d_conv_max
@@ -673,8 +727,9 @@ def cpg_utils(nn,popfunc, conn,
         mnp1_scale = mnp1_isf_max / mnp1_conv_max
         mnp2_scale = mnp2_isf_max / mnp2_conv_max
 
-
-
+        print('Max firing rate of a MNP FLX (ISF):',round(mnp1_isf_max,2),'MNP EXT:',round(mnp2_isf_max,2))
+        print('Max firing rate of a MNP FLX (Convolved):',round(mnp1_conv_max,2),'MNP EXT:',round(mnp2_conv_max,2))
+       
         # Contralateral RG ISF (use excitatory bursting subpopulation, symmetric to ipsi)
         contra_rg1_freq, contra_rg1_times = popfunc.calculate_interspike_frequency(
             nn.flx_exc_bursting_count, spiketimes_contra_rg_exc_burst1
@@ -697,7 +752,6 @@ def cpg_utils(nn,popfunc, conn,
         contra_rg2_isf_max = np.nanmax([np.nanmean(f) for f in contra_rg2_freq])
         contra_mnp1_isf_max = np.nanmax([np.nanmean(f) for f in contra_mnp1_freq])
         contra_mnp2_isf_max = np.nanmax([np.nanmean(f) for f in contra_mnp2_freq])
-
 
         contra_rg1_scale = contra_rg1_isf_max / np.nanmax(contra_rg1_convolved)
         contra_rg2_scale = contra_rg2_isf_max / np.nanmax(contra_rg2_convolved)

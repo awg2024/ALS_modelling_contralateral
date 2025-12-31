@@ -571,9 +571,11 @@ if nn.rgs_connected == 1:
         conn.create(R_inh2.inh_inter_bursting, L_rg1.rg_exc_bursting,  'custom_v1_rg_contra')
 
 
+    # Defining V0c subpopulations 
     # 1 - FLX
-    # 2 - EXT
     R_V0C_1.create_commissural_population(pop_type='V0C', self_connection='none', firing_behavior='tonic', pop_size=nn.v0v_pop_size, input_type='none')
+   
+    # 2 - EXT
     R_V0C_2.create_commissural_population(pop_type='V0C', self_connection='none', firing_behavior='tonic', pop_size=nn.v0v_pop_size, input_type='none')
     
     if nn.contralateral_projections_v0c_right == 1: 
