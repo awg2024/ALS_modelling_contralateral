@@ -279,8 +279,6 @@ if nn.rgs_connected == 1:
         # V0d_bursting → RG_F CONTRA (inhibitory, correct) - this is the we are wanting to manipulate.
         conn.create_connections(L_V0D.v0d_bursting, R_rg1.rg_exc_bursting, 'custom_v0d_rg_inh')
 
-
-
     if nn.high_locomotion_v0d_left == 1: 
         
         print("Creating Connections for LEFT V0d - HIGH LOCOMOTION")
@@ -570,7 +568,6 @@ if nn.rgs_connected == 1:
         # V1 inhibits the RG_flx 
         conn.create(R_inh2.inh_inter_bursting, L_rg1.rg_exc_bursting,  'custom_v1_rg_contra')
 
-
     # Defining V0c subpopulations 
     # 1 - FLX
     R_V0C_1.create_commissural_population(pop_type='V0C', self_connection='none', firing_behavior='tonic', pop_size=nn.v0v_pop_size, input_type='none')
@@ -587,7 +584,6 @@ if nn.rgs_connected == 1:
         conn.create_connections(R_V0C_1.v0c_tonic, L_mnp1.motor_neuron_pop, 'custom_v0c_mnp_flx')
         conn.create_connections(R_V0C_2.v0c_tonic, L_mnp2.motor_neuron_pop, 'custom_v0c_mnp_ext')
 
-
     # ================================ END OF RIGHT SIDE CPG CODE ==========================================================
    
     ##  =============================== ONLINE RAMP =================================
@@ -599,6 +595,7 @@ if nn.rgs_connected == 1:
         w_start = 0.0
         w_end = 10.0
         ramp_duration = nn.ramp_duration  # ms, taking the config file. 
+        
 
         # initialize BEFORE loop
         online_ramp_log = {
@@ -606,8 +603,10 @@ if nn.rgs_connected == 1:
             "weight": [],
         }
 
+        specified_weight = nn.offline_ramp_weight
+
         # retrieving connection
-        connections = conn.synapses[nn.online_ramp_weight]
+        connections = conn.synapses[specified_weight]
 
         # print(f"[DEBUG] Established connection variable: {connections}")
         # time.sleep(10) #  we might need to apply an np.mean function here. 
@@ -635,6 +634,8 @@ if nn.rgs_connected == 1:
                 new_weight = w_start + (w_end - w_start) * (t / ramp_duration)
             else:
                 new_weight = w_end
+
+
 
             #  APPLY WEIGHT
             nest.SetStatus(connections, {"weight": new_weight})
@@ -691,7 +692,7 @@ if nn.rgs_connected == 1:
                 nest.SetStatus(R_V1a_2.v1a_2_pg, {"rate": flx_1a_feedback_R})
 
             # displaying the current duration of simulation and the assigned weight during the ONLINE ramp
-            print(f"t = {t:.1f} ms, w = {new_weight:.3f}", end="\r")
+            print(f"t = {t:.1f} ms, {specified_weight} Weight: {new_weight:.3f}", end="\r")
 
 
         t_stop = time.perf_counter()
@@ -745,8 +746,10 @@ if nn.rgs_connected == 1:
 
         scale = [0, 2, 4, 8, 16]  # stepwise scaling factors
 
+        specified_weight = nn.online_ramp_weight
+
         # get all connections for this weight type
-        connections = conn.synapses[nn.offline_ramp_weight]
+        connections = conn.synapses[nn.specified_weight]
 
         # read base weight ONCE
         base_w = nest.GetStatus(connections, "weight")[0]
@@ -798,7 +801,7 @@ if nn.rgs_connected == 1:
                 print(f"t = {nest.biological_time}", end="\r")
 
             t_stop = time.perf_counter()
-            print(f"\nOffline Ramp Experiment Block completed in {round(t_stop - t_start, 2)} s")
+            print(f"\nOffline Ramp Experiment Block for Weight: {specified_weight} completed in {round(t_stop - t_start, 2)} s.")
                 
                 # CPG UTILS FOR BOTH SIDES 
             L_label = "LEFT"

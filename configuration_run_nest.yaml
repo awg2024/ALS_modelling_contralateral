@@ -10,6 +10,7 @@ offline_ramp_experiment: 0 # takes the block_time then scales for EACH simulatio
 offline_ramp_weight: 'custom_v0d_rg_inh' # specified weight to scale for offline scaling 
 online_ramp_experiment: 1 # taking ramp_duration specified time scaling up DURING the simulation 
 online_ramp_weight: 'custom_v0d_rg_inh' # specified weight to scale for online scaling 
+
 # ======================================================
 
 optimizing: 0 #Use 1 when running Bayesian optimization to find parameters
@@ -103,4 +104,5 @@ phase_ordered_plot: 1
 raster_plot: 0
 rate_coded_plot: 1
 spike_distribution_plot: 0
+
 heatmap_recruitment_plot: 0 

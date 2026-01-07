@@ -91,17 +91,26 @@ def single_neuron_spikes(neuron_number,population):
 	return spike_time
 
 def single_neuron_spikes_binary(neuron_number, population):
+    
     n_bins = int(nn.sim_time / nn.time_resolution)
+    
     spike_time = np.zeros(n_bins, dtype=np.int8)
 
-    # Handle population indexing safely
     spike_data = population[neuron_number]  # assuming population[neuron_number] gives array/list of spike times
 
-    # Ensure iterable
-    if np.isscalar(spike_data):
-        spike_data = [spike_data]
+    if isinstance(spike_data, (list, np.ndarray)):
+        # If it's something like [array([...]), array([...]), ...]
+        if len(spike_data) > 0 and isinstance(spike_data[0], (list, np.ndarray)):
+            # Flatten by concatenating each segment
+            segments = [np.ravel(seg) for seg in spike_data if seg is not None]
+            if segments:
+                spike_data = np.concatenate(segments)
+            else:
+                spike_data = np.array([], dtype=float)
+        else:
+            spike_data = np.ravel(spike_data)
     else:
-        spike_data = np.ravel(spike_data)  # flatten in case of nested arrays
+        spike_data = np.array([], dtype=float)
 
     for t in spike_data:
         try:
@@ -272,30 +281,65 @@ def smooth(data, sd):
 	return data
 
 def convolve_spiking_activity(population_size,population):
+    
+    spike_times = population 
+
+    # unwrapping block 
+    if (
+        isinstance(spike_times, list)
+        and len(spike_times) == 1
+        and isinstance(spike_times[0], (list, np.ndarray))
+        and len(spike_times[0]) == population_size
+    ):
+        spike_times = spike_times[0]
+
+    print("[DEBUG] convolve_spiking_activity: len(spike_times) =", len(spike_times))
+
     time_steps = int(nn.sim_time/nn.time_resolution) 
     
-    # calling the single_neuron_spikes_binary - doesn't match exactly 
-    binary_spikes = np.vstack([single_neuron_spikes_binary(i, population) for i in range(population_size)])
+    # calling the single_neuron_spikes_binary - error taking place here, calling the binary times here. 
+    binary_spikes = np.vstack([
+    single_neuron_spikes_binary(i, spike_times)
+    for i in range(population_size)
+    ])
     
+    # binning spikes for convolving 
     binned_spikes = sliding_time_window_matrix(binary_spikes,nn.time_window)
+
     smoothed_spikes = smooth(binned_spikes, nn.convstd_rate)
+
     time_vector = np.arange(binned_spikes.shape[1]) * nn.time_resolution
+
+    # chop edges amount paramter 
     if nn.chop_edges_amount > 0.0:
         chop = int(nn.chop_edges_amount)
         smoothed_spikes = smoothed_spikes[:, chop:-chop]
         time_vector = time_vector[chop:-chop]
+
+    # remove mean parameter 
     if nn.remove_mean:
         smoothed_spikes = (smoothed_spikes.T - np.mean(smoothed_spikes, axis=1)).T
+
+    # high pass filtered parameter 
     if nn.high_pass_filtered:
         # Same used as in Linden et al, 2022 paper
         b, a = butter(3, .1, 'highpass', fs=1000)		#high pass freq was previously 0.3Hz
         smoothed_spikes = filtfilt(b, a, smoothed_spikes)
+    
+    # downsampling convolved parameter 
     if nn.downsampling_convolved:
-        smoothed_spikes = decimate(smoothed_spikes, int(1/nn.time_resolution), n=2, ftype='iir', zero_phase=True)
+        decimation_factor = int(1 / nn.time_resolution)  
+        smoothed_spikes = decimate(
+            smoothed_spikes,
+            decimation_factor,
+            n=2,
+            ftype='iir',
+            zero_phase=True
+        )
         time_vector = time_vector[::decimation_factor]
     
-    
     smoothed_spikes = smoothed_spikes[:, :-nn.time_window + 1] #truncate array by the width of the time window 
+    
     time_vector = time_vector[:smoothed_spikes.shape[1]]
     pop_mean = smoothed_spikes.mean(axis=0)
     
@@ -334,32 +378,4 @@ def plot_colored_trace(ax, t, y, weights, cmap="viridis", lw=2):
 
     return lc
 
-def spike_report(name, senders, spiketimes):
-    
-    print(f"\n===== SPIKE REPORT : {name} =====")
-
-    if spiketimes is None or len(spiketimes) == 0:
-        print("No spiketimes array found.")
-        return
-
-    try:
-        # spiketimes[0] = list of spike lists per neuron
-        flat_spikes = sum(len(st) for st in spiketimes[0])
-        active_neurons = sum(1 for st in spiketimes[0] if len(st) > 0)
-        total_neurons = len(spiketimes[0])
-
-    except Exception as e:
-        print("Error while parsing spiketimes:", e)
-        print("Raw spiketimes:", spiketimes)
-        return
-
-    print(f"Total neurons: {total_neurons}")
-    print(f"Active neurons: {active_neurons}")
-    print(f"Silent neurons: {total_neurons - active_neurons}")
-    print(f"Total spikes: {flat_spikes}")
-
-
-    if flat_spikes == 0:
-        print(" No spikes detected — population is SILENT.")
-    else:
-        print("Spiking OK ✔️")
+def spike_report(na

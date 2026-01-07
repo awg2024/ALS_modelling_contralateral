@@ -16,13 +16,18 @@ print_data_array_phase=[]
 
 def analyze_output(input_1,input_2,pop_type,y_line_bd,y_line_phase,min_dist):
     try:
+
+        print(f"Loading in Input: {input_1} & {input_2} for {pop_type}")
+
         # Read the CSV file into an array
         pop_data1 = np.loadtxt(input_1, delimiter=',', dtype=float)
         pop_data2 = np.loadtxt(input_2, delimiter=',', dtype=float)
         
+        # rescale the pop_data inputs from 0 to 1. 
         pop_data1_norm = (pop_data1-np.min(pop_data1))/(np.max(pop_data1)-np.min(pop_data1))
         pop_data2_norm = (pop_data2-np.min(pop_data2))/(np.max(pop_data2)-np.min(pop_data2))
         
+        # calculates burst duration various metrices 
         up_bd1,down_bd1,burst_duration1,bd_variance1,coeff_bd_variance1=calculate_burst_duration(pop_data1_norm,y_line_bd)
         up_bd2,down_bd2,burst_duration2,bd_variance2,coeff_bd_variance2=calculate_burst_duration(pop_data2_norm,y_line_bd)          
         
@@ -31,26 +36,33 @@ def analyze_output(input_1,input_2,pop_type,y_line_bd,y_line_phase,min_dist):
         up_bd2_y = [pop_data2_norm[t_thresh] for t_thresh in up_bd2]         
         down_bd2_y = [pop_data2_norm[t_thresh] for t_thresh in down_bd2]
         
+        # calculates frequency of population 
         freq_pop1 = calculate_freq(up_bd1)
         freq_pop2 = calculate_freq(up_bd2)
         avg_freq = (freq_pop1 + freq_pop2)/2
-        print('Freq (1,2,avg)',freq_pop1,freq_pop2,avg_freq)    
         
-        #Calculate phase using peak to peak
+        # outputting the frequency population 
+        print(f"Frequency of Population 01: {freq_pop1}. Frequency of Population 02: {freq_pop2}. Average Frequency of Population: {avg_freq}")    
+        
+        #Calculate phase using peak to peak calcualations 
         phase_peak,phase_variance_peak,coeff_phase_variance_peak,avg_freq_peak,pop1_peaks,pop2_peaks=calculate_peak_to_peak_phase(pop_data1_norm,pop_data2_norm,y_line_phase,min_dist)
-        phase_peak = 360 - phase_peak if phase_peak > 180 else phase_peak  #Ensure phase always between 0-180 degrees
+        
+        # caluclate the anglular phase here. must always stay between 0-180 
+        phase_peak = 360 - phase_peak if phase_peak > 180 else phase_peak  # If greater than 180 it's part of another phase, This is biologically sensible for left–right alternation
+        
         phase1_y = [pop_data1_norm[t_peak] for t_peak in pop1_peaks]
         phase2_y = [pop_data2_norm[t_peak] for t_peak in pop2_peaks]
         
+        # suppression time - Counts time both populations are silent simultaneously.
         total_suppression = find_zero_overlap(pop_data1_norm,pop_data2_norm)
         
         #Calculate CV of amplitude
         coeff_amp1_var,coeff_amp2_var = calculate_amplitude_cv(pop_data1_norm,pop_data2_norm,y_line_phase,min_dist)
         
-        print(pop_type+' Freq, Phase, BD Flx, BD Ext: ')
-        print(avg_freq,round(phase_peak,2),round(burst_duration1,2),round(burst_duration2,2))  
-        print(pop_type,'BD (1,2), BD CV (1,2), Amp CV (1,2), Freq, Phase, Phase CV, % of time suppressed: ')
-        print_data_array_bd.extend([round(burst_duration1,2),round(burst_duration2,2),coeff_bd_variance1,coeff_bd_variance2,coeff_amp1_var,coeff_amp2_var])
+        print(f"{pop_type} Frequency: {avg_freq}, Phase: {round(phase_peak,2)}, Burst Duration Flexor: {round(burst_duration1,2)}, Burst Duration Extensor: {round(burst_duration2,2)}")
+
+        print(f"{pop_type}, Coeffient Burst Duration Variance (Flexor): {coeff_bd_variance1}, Coeffient Burst Duratiion Variance (Extensor): {coeff_bd_variance2}, Coeffient Amplitude Variance (Flexor): {coeff_amp1_var}, Coeffient Amplitude Variance (Extensor): {coeff_amp2_var}")
+
         print_data_array_phase.extend([avg_freq_peak,round(phase_peak,2),coeff_phase_variance_peak,round(100*(total_suppression/4000),2)])
 
     except FileNotFoundError:
@@ -183,8 +195,8 @@ def find_zero_overlap(arr1, arr2):
     sum_zero_durations = sum(zero_durations)*time_resolution        
     'Time suppression intervals: ',zero_durations
     return sum_zero_durations
-
-#MNP input
+# MNP input
+# MNP output files 
 mnp_bd_y_line = 0.4
 mnp_phase_y_line = 0.4
 min_dist_phase_calc = 1000

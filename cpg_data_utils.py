@@ -431,6 +431,8 @@ def cpg_utils(nn,popfunc, conn,
         if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + f'{label}_rate_coded_output_rg_mnp.png',bbox_inches="tight")
             
         if max(spike_bins_mnp1)>0 and max(spike_bins_mnp2)>0: 
+
+            # calling analyze output function for MNP from calculate_stability_metrics.py 
             avg_freq, avg_phase, bd_comparison = calc.analyze_output(spike_bins_mnp1,spike_bins_mnp2,spike_bins_mnp1_true,spike_bins_mnp2_true,'MNP',y_line_bd=0.4,y_line_phase=0.7)    
 
     if nn.isf_output==1:
@@ -523,10 +525,14 @@ def cpg_utils(nn,popfunc, conn,
         # calculating ISF - Inter Spike Frequency. 
         print('Calculating Inter-Spiking Frequency complete, taking ',int(t_stop-t_start),' seconds.')
 
-        print('Moving onto Convolving Spiking activity -- Taking a spike train (series of discrete spikes) and smoothing it into a continuous signal')
+        print('Moving onto Convolving Spiking activity Processing (Taking a spike train (series of discrete spikes) and smoothing it into a continuous signal)')
         
         t_start = time.perf_counter()
         #Convolve spike data - RG populations
+
+        # print("[DEBUG] flx_exc_tonic_count =", nn.flx_exc_tonic_count)
+        # print("[DEBUG] spiketimes_exc_tonic1 type:", type(spiketimes_exc_tonic1))
+        # print("[DEBUG] spiketimes_exc_tonic1 example:", spiketimes_exc_tonic1[:10])
         
         rg_exc_tonic_convolved1, _, _ = popfunc.convolve_spiking_activity(nn.flx_exc_tonic_count,spiketimes_exc_tonic1)
         rg_inh_convolved1, _, _ = popfunc.convolve_spiking_activity(nn.flx_inh_bursting_count,spiketimes_inh1)
@@ -558,11 +564,12 @@ def cpg_utils(nn,popfunc, conn,
         # Average contra V2a if needed (match ipsi structure)
         v2a_contra_convolved = np.vstack([v2a_contra1_convolved, v2a_contra2_convolved]).mean(axis=0)
 
-        
-        #Convolve spike data - V2a excitatory interneuron populations
-        v0c1_convolved, _, _  = popfunc.convolve_spiking_activity(nn.v0c_pop_size,spiketimes_V0c_1)
-        v0c2_convolved, _, _  = popfunc.convolve_spiking_activity(nn.v0c_pop_size,spiketimes_V0c_2)
-        
+        if nn.contralateral_projections_v0c_right and nn.contralateral_projections_v0c_left:
+
+            v0c1_convolved, _, _  = popfunc.convolve_spiking_activity(nn.v0c_pop_size,spiketimes_V0c_1)
+            v0c2_convolved, _, _  = popfunc.convolve_spiking_activity(nn.v0c_pop_size,spiketimes_V0c_2)
+
+         
         v1a1_convolved, _, _ = popfunc.convolve_spiking_activity(nn.v1a_pop_size,spiketimes_V1a_1)
         v1a2_convolved, _, _ = popfunc.convolve_spiking_activity(nn.v1a_pop_size,spiketimes_V1a_2)
         
@@ -571,18 +578,23 @@ def cpg_utils(nn,popfunc, conn,
 
         #Convolve spike data - v2a and v0v 
 
-        v0v_convolved, _, v0v_neuron_convolved = popfunc.convolve_spiking_activity(nn.v0v_pop_size,spiketimes_V0v)   # population-averaged signal (T, )
+        if nn.low_locomotion_v0d_left and nn.low_locomotion_v0d_right: 
+        
+            v0d_contra_convolved, _, v0d_contra_neuron_convolved = popfunc.convolve_spiking_activity(nn.v0d_pop_size, spiketimes_V0d_contra)
+            v0d_convolved, _, v0d_neuron_convolved = popfunc.convolve_spiking_activity(nn.v0d_pop_size,spiketimes_V0d)
 
-        v0d_convolved, _, v0d_neuron_convolved = popfunc.convolve_spiking_activity(nn.v0d_pop_size,spiketimes_V0d)
+       
+        if nn.low_locomotion_v0v_left and nn.low_locomotion_v0v_right: 
 
-        v0d_contra_convolved, _, v0d_contra_neuron_convolved = popfunc.convolve_spiking_activity(nn.v0d_pop_size, spiketimes_V0d_contra)
-
-        v0v_contra_convolved, _, v0v_contra_neuron_convolved = popfunc.convolve_spiking_activity(nn.v0v_pop_size, spiketimes_V0v_contra)
-
+            v0v_convolved, _, v0v_neuron_convolved = popfunc.convolve_spiking_activity(nn.v0v_pop_size,spiketimes_V0v)   # population-averaged signal (T, )
+            v0v_contra_convolved, _, v0v_contra_neuron_convolved = popfunc.convolve_spiking_activity(nn.v0v_pop_size, spiketimes_V0v_contra)
 
         #Convolve spike data - MNPs
         mnp1_convolved, convolved_time, _ = popfunc.convolve_spiking_activity(nn.num_motor_neurons,spiketimes_mnp1)
         mnp2_convolved, _, _ = popfunc.convolve_spiking_activity(nn.num_motor_neurons,spiketimes_mnp2)
+
+        mnp1_convolved_contra, _, _ = popfunc.convolve_spiking_activity(nn.num_motor_neurons,spiketimes_contra_mnp1)
+        mnp2_convolved_contra, _, _ = popfunc.convolve_spiking_activity(nn.num_motor_neurons,spiketimes_contra_mnp2)
 
         # --- Convolve CONTRALATERAL RG populations (full symmetry to ipsilateral) ---
 
@@ -656,7 +668,6 @@ def cpg_utils(nn,popfunc, conn,
                 
         v2b_scale = v2b_isf_max / v2b_conv_max
      
-
         v1_scale = v1_isf_max / v1_conv_max
         v1_scale_contra = v1_contra_isf_max / v1_contra_conv_max 
 
@@ -682,29 +693,39 @@ def cpg_utils(nn,popfunc, conn,
         # For averaged contra V2a signal
         contra_v2a_scale = np.nanmax([contra_v2a1_scale, contra_v2a2_scale])
 
-        
-        v0c1_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v0c1_freq]))
-        v0c2_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v0c2_freq]))
-        v0c1_conv_max = np.nanmax(v0c1_convolved)
-        v0c2_conv_max = np.nanmax(v0c2_convolved)
-        v0c1_scale = v0c1_isf_max / v0c1_conv_max
-        v0c2_scale = v0c2_isf_max / v0c2_conv_max
-        
-        v0v_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v0v_freq]))
-        v0d_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v0d_freq]))
-        v0d_contra_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v0d_contra_freq]))
-        V0v_conv_max = np.nanmax(v0v_convolved)
-        V0d_conv_max = np.nanmax(v0d_convolved)
-        V0d_contra_conv_max = np.nanmax(v0d_contra_convolved)
-        v0v_contra_isf_max = np.nanmax([np.nanmean(f) for f in v0v_contra_freq])
+        if nn.contralateral_projections_v0c_left and nn.contralateral_projections_v0c_right: 
 
-        print('Max Firing rate of V0D (Ipsilateral) (ISF):', round(v0d_isf_max,2), ' Max Firing rate of V0D (Contralateral) (ISF)', round(v0d_contra_isf_max,2))
-        print('Max Firing rate of V0V (Ipsilateral) (ISF):', round(v0v_isf_max,2), ' Max Firing rate of V0D (Contralateral) (ISF)', round(v0v_contra_isf_max,2))
+            v0c1_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v0c1_freq]))
+            v0c2_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v0c2_freq]))
+            v0c1_conv_max = np.nanmax(v0c1_convolved)
+            v0c2_conv_max = np.nanmax(v0c2_convolved)
+            v0c1_scale = v0c1_isf_max / v0c1_conv_max
+            v0c2_scale = v0c2_isf_max / v0c2_conv_max
 
-        v0v_contra_scale = v0v_contra_isf_max / np.nanmax(v0v_contra_convolved)
-        v0v_scale = v0v_isf_max / V0v_conv_max
-        v0d_scale = v0d_isf_max / V0d_conv_max
-        v0d_contra_scale = v0d_contra_isf_max / V0d_contra_conv_max
+        if nn.low_locomotion_v0v_left and nn.low_locomotion_v0v_left: 
+       
+            v0v_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v0v_freq]))
+            V0v_conv_max = np.nanmax(v0v_convolved)
+            v0v_contra_isf_max = np.nanmax([np.nanmean(f) for f in v0v_contra_freq])
+            
+            print('Max Firing rate of V0V (Ipsilateral) (ISF):', round(v0v_isf_max,2), ' Max Firing rate of V0D (Contralateral) (ISF)', round(v0v_contra_isf_max,2))
+
+            v0v_contra_scale = v0v_contra_isf_max / np.nanmax(v0v_contra_convolved)
+            v0v_scale = v0v_isf_max / V0v_conv_max
+            v0d_scale = v0d_isf_max / V0d_conv_max
+            v0d_contra_scale = v0d_contra_isf_max / V0d_contra_conv_max
+                
+            
+        if nn.low_locomotion_v0d_left and nn.low_locomotion_v0d_right: 
+       
+            v0d_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v0d_freq]))
+            v0d_contra_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v0d_contra_freq]))
+            V0d_conv_max = np.nanmax(v0d_convolved)
+            V0d_contra_conv_max = np.nanmax(v0d_contra_convolved)
+            
+
+            print('Max Firing rate of V0D (Ipsilateral) (ISF):', round(v0d_isf_max,2), ' Max Firing rate of V0D (Contralateral) (ISF)', round(v0d_contra_isf_max,2))
+       
 
         v1a1_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v1a1_freq]))
         v1a2_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v1a2_freq]))
@@ -765,6 +786,7 @@ def cpg_utils(nn,popfunc, conn,
         print('Max firing rate of a Flx MN (Convolved):',round(mnp1_conv_max,2),'Ext MN:',round(mnp2_conv_max,2))
         print('Convolved max is',round(mnp1_scale,3),round(mnp2_scale,3), 'times the size of ISF max (Flx, Ext).')
         
+        # Scaling Rg1 & Rg2 
         mnp1_convolved_scaled = mnp1_convolved * mnp1_scale
         mnp2_convolved_scaled = mnp2_convolved * mnp2_scale
         mnp1_convolved_scaled_mean = np.nanmean(mnp1_convolved_scaled)
@@ -772,14 +794,85 @@ def cpg_utils(nn,popfunc, conn,
         mnp1_convolved_max_scaled = np.nanmax(mnp1_convolved * mnp1_scale)
         mnp2_convolved_max_scaled = np.nanmax(mnp2_convolved * mnp2_scale)
         
-        print('After scaling max firing rate of a Flx MN (Convolved):',round(mnp1_convolved_max_scaled,2),'Ext MN:',round(mnp2_convolved_max_scaled,2))
-        print('After scaling mean firing rate of a Flx MN (Convolved):',round(mnp1_convolved_scaled_mean,2),'Ext MN:',round(mnp2_convolved_scaled_mean,2))
+        print('[INFO] After scaling max firing rate of a Flx MN (Convolved):',round(mnp1_convolved_max_scaled,2),'Ext MN:',round(mnp2_convolved_max_scaled,2))
+        print('[INFO] After scaling mean firing rate of a Flx MN (Convolved):',round(mnp1_convolved_scaled_mean,2),'Ext MN:',round(mnp2_convolved_scaled_mean,2))
         
+          # prepping variables for analyze_output function 
         mnp1_avg_norm = (mnp1_convolved-np.min(mnp1_convolved))/(np.max(mnp1_convolved)-np.min(mnp1_convolved))
         mnp2_avg_norm = (mnp2_convolved-np.min(mnp2_convolved))/(np.max(mnp2_convolved)-np.min(mnp2_convolved))
+
         
+        # Scaling mnp1 & mnp2 contra 
+        mnp1_contra_convolved_scaled = mnp1_convolved_contra * mnp1_scale 
+        mnp2_conta_convolved_scaled = mnp2_convolved_contra & mnp2_scale
+        mnp1_contra_convolved_scaled_mean = np.nanmean(mnp1_contra_convolved_scaled)
+        mnp2_conta_convolved_scaled_mean = np.nanmean(mnp2_conta_convolved_scaled)
+        mnp1_contra_convolved_max_scaled = np.nanmax(mnp1_convolved_contra * mnp1_scale)
+        mnp2_conta_convolved_max_scaled = np.nanmax(mnp2_convolved_contra * mnp1_scale)
+
+        print('[INFO] After scaling max firing rate of a Flx CONTRA  MN (Convolved):',round(mnp1_contra_convolved_max_scaled,2),'Ext MN:',round(mnp2_conta_convolved_max_scaled,2))
+        print('[INFO] After scaling mean firing rate of a Flx CONTRA MN (Convolved):',round(mnp1_contra_convolved_scaled_mean,2),'Ext MN:',round(mnp2_conta_convolved_scaled_mean,2))
+        
+        mnp1_contra_avg_norm = (mnp1_convolved_contra-np.min(mnp1_convolved_contra))/(np.max(mnp1_convolved_contra)-np.min(mnp1_convolved_contra))
+        mnp2_contra_avg_norm = (mnp2_convolved_contra-np.min(mnp2_convolved_contra))/(np.max(mnp2_convolved_contra)-np.min(mnp2_convolved_contra))
+
+        # Scaling Rg1 & Rg2 
+        rg1_convolved_scaled = rg1_convolved * rg1_scale 
+        rg2_convolved_scaled = rg2_convolved * rg2_scale
+        rg1_convolved_scaled_mean = np.nanmean(rg1_convolved_scaled)
+        rg_2_convolved_scaled_mean = np.nanmean(rg2_convolved_scaled)
+        rg_1_convolved_max_scaled = np.nanmax(rg1_convolved * rg1_scale)
+        rg_2_convolved_max_scaled = np.nanmax(rg2_convolved * rg2_scale)
+
+        print('[INFO] After scaling max firing rate of a Flx RG (Convolved):',round(rg_1_convolved_max_scaled,2),'Ext RG:',round(rg_2_convolved_max_scaled,2))
+        print('[INFO] After scaling mean firing rate of a Flx MN (Convolved):',round(rg1_convolved_scaled_mean,2),'Ext MN:',round(rg_2_convolved_scaled_mean,2))
+        
+        rg1_avg_norm = (rg1_convolved-np.min(rg1_convolved))/(np.max(rg1_convolved)-np.min(rg1_convolved))
+        rg2_avg_norm = (rg2_convolved-np.min(rg2_convolved))/(np.max(rg2_convolved)-np.min(rg2_convolved))
+
+
+        rg1_contra_convolved_scaled = contra_rg1_convolved * rg1_scale 
+        rg2_contra_convolved_scaled = contra_rg2_convolved * rg2_scale 
+        rg1_contra_convolved_scaled_mean = np.nanmean(rg1_contra_convolved_scaled)
+        rg2_contra_convolved_scaled_mean = np.nanmean(rg2_contra_convolved_scaled)
+        rg_1_contra_convolved_max_scaled = np.nanmax(contra_rg1_convolved * rg1_scale)
+        rg_2_contra_convolved_max_scaled = np.nanmax(contra_rg2_convolved * rg2_scale)
+    
+        print('[INFO] After scaling max firing rate of a Flx RG (Convolved):',round(rg_1_contra_convolved_max_scaled,2),'Ext RG:',round(rg_2_contra_convolved_max_scaled,2))
+        print('[INFO] After scaling mean firing rate of a Flx MN (Convolved):',round(rg1_contra_convolved_scaled_mean,2),'Ext MN:',round(rg2_contra_convolved_scaled_mean,2))
+        
+        rg1_contra_avg_norm = (contra_rg1_convolved-np.min(contra_rg1_convolved))/(np.max(contra_rg1_convolved)-np.min(contra_rg1_convolved))
+        rg2_contra_avg_norm = (contra_rg2_convolved-np.min(contra_rg2_convolved))/(np.max(contra_rg2_convolved)-np.min(contra_rg2_convolved))
+
+        # Scaling rg1 and rg2 contra 
         if max(mnp1_avg_norm)>0 and max(mnp2_avg_norm)>0: 
+
+            print("[INFO] Calling Analyze Output Function for MNP (Ipsilateral) ")
+            
             avg_freq, avg_phase, bd_comparison = calc.analyze_output(mnp1_avg_norm,mnp2_avg_norm,mnp1_convolved_scaled,mnp2_convolved_scaled,'MNP',y_line_bd=0.4,y_line_phase=0.7)
+
+       
+        if max(mnp1_contra_avg_norm) > 0 and max(mnp2_contra_avg_norm) > 0: 
+
+            print("[INFO] Calling Analyze Output Function for MNP (Contralateral)")
+
+            avg_freq, avg_phase, bd_comparison = calc.analyze_output(mnp1_avg_norm,mnp2_avg_norm,mnp1_convolved_scaled,mnp2_convolved_scaled,'MNP',y_line_bd=0.4,y_line_phase=0.7)
+
+    
+       
+        if max(rg1_avg_norm) > 0 and max(rg2_avg_norm) > 0:  
+
+            print("[INFO] Calling Analyze Output Function for RG (Ipsilateral)")
+
+            avg_freq, avg_phase, bd_comparison = calc.analyze_output(rg1_avg_norm,rg2_avg_norm,rg1_convolved_scaled,rg2_convolved_scaled,'RG',y_line_bd=0.4,y_line_phase=0.7)
+
+        if max(rg1_contra_avg_norm) > 0 and max(rg2_contra_avg_norm) > 0: 
+
+            print("[INFO] Calling Analyze Output Function for RG (Contralateral)")
+        
+     
+
+    
         
         t = convolved_time
         xticks = np.arange(start=np.ceil(t[0] / 1000) * 1000, stop=t[-1], step=1000)
