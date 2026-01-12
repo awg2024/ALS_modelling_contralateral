@@ -77,7 +77,7 @@ class neural_network():
             self.v2a_tonic_pop_size= 158 #Healthy=158, P63=158, P112=67 (59% loss)
             self.v2a_burst_pop_size= 158 # mammalian mouse found 50/50 of burst and tonic pop 
             self.v1a_pop_size= 60 #Healthy=60, P63=35, P112=33
-            self.v0c_pop_size= 15 #Healthy=15 Aligns with motor population of 10:1 
+            self.v0c_pop_size= 15 #Healthy=15 Aligns with motor population of 10:1 Suggested by Garath Miles. 
             self.rc_pop_size= 30 #Healthy=30, P63=14, P112=6
             self.num_motor_neurons= 150 #Healthy=150, P63=150, P112=107 (28% loss)
             
@@ -269,13 +269,22 @@ class neural_network():
 
 
         # v0d inhibiting rg 
-        self.w_custom_v0d_rg_inh_mean = 2*self.inh_weight_multiplier
-        self.w_custom_v0d_rg_inh_std = 2*self.inh_weight_multiplier
+        self.w_custom_v0d_rg_inh_R_mean = 2*self.inh_weight_multiplier
+        self.w_custom_v0d_rg_inh_R_std = 2*self.inh_weight_multiplier
+
+        self.w_custom_v0d_rg_inh_L_mean = 2*self.inh_weight_multiplier
+        self.w_custom_v0d_rg_inh_L_std = 2*self.inh_weight_multiplier
+
+
+
         
         # rg exciting the v0d 
-        self.w_custom_rg_v0d_mean =  8*self.exc_weight_multiplier
-        self.w_custom_rg_v0d_std = 8*self.exc_weight_multiplier
+        self.w_custom_rg_v0d_R_mean =  2*self.exc_weight_multiplier
+        self.w_custom_rg_v0d_R_std = 2*self.exc_weight_multiplier
 
+        self.w_custom_rg_v0d_L_mean =  2*self.exc_weight_multiplier
+        self.w_custom_rg_v0d_L_std = 2*self.exc_weight_multiplier
+        
        
 
         # v0v inhibiting rg inhib flex. 
@@ -312,8 +321,11 @@ class neural_network():
 
         
         # V0d sparsity connections 
-        self.sparsity_custom_rg_v0d = 0.25
-        self.sparsity_custom_v0d_rg_inh = 0.25
+        self.sparsity_custom_rg_v0d_R = 0.25
+        self.sparsity_custom_rg_v0d_L = 0.25
+
+        self.sparsity_custom_v0d_rg_inh_R = 0.25
+        self.sparsity_custom_v0d_rg_inh_L = 0.25
         self.sparsity_custom_rg_v0d_inh = 0.25
 
         # V0v sparsity connections 
@@ -425,6 +437,11 @@ class neural_network():
         self.contralateral_projections_v0c_right = args['contralateral_projections_v0c_right']
         self.contralateral_projections_v0c_left = args['contralateral_projections_v0c_left']
 
+        self.w_start = args['w_start']
+        self.w_end = args['w_end']
+
+ 
+
          #self.contralateral_projections_v3_flx_left = args['contralateral_projections_v3_flx_left']
          #self.contralateral_projections_v3_ext_left = args['contralateral_projections_v3_ext_left']
          #self.contralateral_projections_v3_flx_right = args['contralateral_projections_v3_flx_right']
@@ -513,9 +530,9 @@ class neural_network():
         
        
        # contralateral DICT! V0d    
-        self.conn_dict_custom_rg_v0d = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_rg_v0d}
+        self.conn_dict_custom_rg_v0d_L = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_rg_v0d_L}
+        self.conn_dict_custom_rg_v0d_R = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_rg_v0d_R}
     
-        
         # contralateral DICT! V0v
         self.conn_dict_custom_v2a_v0v = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_v2a_v0v}       
         self.conn_dict_custom_v0v_rg_inh = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_v0v_rg_inh}       
@@ -524,8 +541,8 @@ class neural_network():
         self.conn_dict_custom_v0c_mnp_flx = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_v0c_mnp_flx}       
         self.conn_dict_custom_v0c_mnp_ext = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_v0c_mnp_ext}       
 
-        self.conn_dict_custom_v0d_rg_inh = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_v0d_rg_inh}       
-
+        self.conn_dict_custom_v0d_rg_inh_L = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_v0d_rg_inh_L}       
+        self.conn_dict_custom_v0d_rg_inh_R = {'rule': 'pairwise_bernoulli', 'p': self.sparsity_custom_v0d_rg_inh_R}     
 
         #Set multimeter parameters
         self.mm_params = {'interval': 1., 'record_from': ['V_m']}

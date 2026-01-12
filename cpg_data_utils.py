@@ -34,7 +34,9 @@ import create_mnp as mnp
 import calculate_stability_metrics as calc
 import send_receive_feedback as interface_fb
 
-
+# ANALYSIS OF POPULATIONS  
+# include Frequency of signal, Flx / Ext firing rate, amplitude, burst duration 
+# Duty / On-off cycle, burst duration, cycle frequency, alternatation index - amount of overlap. 
 
 def cpg_utils(nn,popfunc, conn,
               rg1, rg2, contra_rg1, contra_rg2,
@@ -50,6 +52,9 @@ def cpg_utils(nn,popfunc, conn,
               ramp_weight=None,           # optional
               ramp_weight_name=None,         # optional
               ramp_type=None):                   # optional 
+    
+    
+    print(f"CPG UTILS {label} Started.")
     
     spike_count_array = []
     #Read spike data - rg populations
@@ -74,6 +79,14 @@ def cpg_utils(nn,popfunc, conn,
     #Read spike data - interneurons
     senders_V0c_1,spiketimes_V0c_1 = popfunc.read_spike_data(V0c_1.spike_detector)
     senders_V0c_2,spiketimes_V0c_2 = popfunc.read_spike_data(V0c_2.spike_detector)
+
+    # --- DEBUG V0c recording ---
+    # print("\n[DEBUG V0c]")
+    # print("V0c_1 detector:", V0c_1.spike_detector)
+    # print("V0c_2 detector:", V0c_2.spike_detector)
+    # time.sleep(5)
+
+
     senders_V1a_1,spiketimes_V1a_1 = popfunc.read_spike_data(V1a_1.spike_detector)
     senders_V1a_2,spiketimes_V1a_2 = popfunc.read_spike_data(V1a_2.spike_detector)
     senders_rc_1,spiketimes_rc_1 = popfunc.read_spike_data(rc_1.spike_detector)
@@ -468,12 +481,18 @@ def cpg_utils(nn,popfunc, conn,
 
         print(f"V2a (Contralateral Flexor-Connected): {np.nanmean([np.nanmean(f) for f in contra_v2a1_freq]):.2f} Hz")
         
-        v0c1_freq, v0c1_times = popfunc.calculate_interspike_frequency(nn.v0c_pop_size,spiketimes_V0c_1)
-        v0c2_freq, v0c2_times = popfunc.calculate_interspike_frequency(nn.v0c_pop_size,spiketimes_V0c_2)
+        v0c1_freq, v0c1_times = popfunc.calculate_interspike_frequency(nn.v0c_pop_size,spiketimes_V0c_1) # v0c1 - connecting to the flx
+        v0c2_freq, v0c2_times = popfunc.calculate_interspike_frequency(nn.v0c_pop_size,spiketimes_V0c_2) # v0c2 - connecting to the ext. 
+
+        # print(f"V0c1 flex freq: {v0c1_freq} and spike times: {v0c1_times}")
+        # time.sleep(5)
 
         v0v_freq, v0v_times = popfunc.calculate_interspike_frequency(nn.v0v_pop_size,spiketimes_V0v)
         v0d_freq, v0d_times = popfunc.calculate_interspike_frequency(nn.v0d_pop_size,spiketimes_V0d)
         
+        print(f"V0c (Flexor-Connected) (Ipsilateral): {np.nanmean([np.nanmean(f) for f in v0c1_freq]):.2f} Hz")
+        print(f"V0c (Extensor-Connected) (Ipsilateral): {np.nanmean([np.nanmean(f) for f in v0c2_freq]):.2f} Hz")
+
         print(f"V0v (Ipsilateral): {np.nanmean([np.nanmean(f) for f in v0v_freq]):.2f} Hz")
         print(f"V0d (Ipsilateral): {np.nanmean([np.nanmean(f) for f in v0d_freq]):.2f} Hz")
 
@@ -564,10 +583,12 @@ def cpg_utils(nn,popfunc, conn,
         # Average contra V2a if needed (match ipsi structure)
         v2a_contra_convolved = np.vstack([v2a_contra1_convolved, v2a_contra2_convolved]).mean(axis=0)
 
-        if nn.contralateral_projections_v0c_right and nn.contralateral_projections_v0c_left:
+        # can be used when importing in contralateral populations 
+        #if nn.contralateral_projections_v0c_right and nn.contralateral_projections_v0c_left:
 
-            v0c1_convolved, _, _  = popfunc.convolve_spiking_activity(nn.v0c_pop_size,spiketimes_V0c_1)
-            v0c2_convolved, _, _  = popfunc.convolve_spiking_activity(nn.v0c_pop_size,spiketimes_V0c_2)
+        # both ipsilateral flexor and extensor populations here. 
+        v0c1_convolved, _, _  = popfunc.convolve_spiking_activity(nn.v0c_pop_size,spiketimes_V0c_1)
+        v0c2_convolved, _, _  = popfunc.convolve_spiking_activity(nn.v0c_pop_size,spiketimes_V0c_2)
 
          
         v1a1_convolved, _, _ = popfunc.convolve_spiking_activity(nn.v1a_pop_size,spiketimes_V1a_1)
@@ -693,14 +714,16 @@ def cpg_utils(nn,popfunc, conn,
         # For averaged contra V2a signal
         contra_v2a_scale = np.nanmax([contra_v2a1_scale, contra_v2a2_scale])
 
-        if nn.contralateral_projections_v0c_left and nn.contralateral_projections_v0c_right: 
+        # can be used for contralateral. 
+        #if nn.contralateral_projections_v0c_left and nn.contralateral_projections_v0c_right: 
 
-            v0c1_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v0c1_freq]))
-            v0c2_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v0c2_freq]))
-            v0c1_conv_max = np.nanmax(v0c1_convolved)
-            v0c2_conv_max = np.nanmax(v0c2_convolved)
-            v0c1_scale = v0c1_isf_max / v0c1_conv_max
-            v0c2_scale = v0c2_isf_max / v0c2_conv_max
+        # ipsilateral population here. 
+        v0c1_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v0c1_freq]))
+        v0c2_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v0c2_freq]))
+        v0c1_conv_max = np.nanmax(v0c1_convolved)
+        v0c2_conv_max = np.nanmax(v0c2_convolved)
+        v0c1_scale = v0c1_isf_max / v0c1_conv_max
+        v0c2_scale = v0c2_isf_max / v0c2_conv_max
 
         if nn.low_locomotion_v0v_left and nn.low_locomotion_v0v_left: 
        
@@ -712,8 +735,7 @@ def cpg_utils(nn,popfunc, conn,
 
             v0v_contra_scale = v0v_contra_isf_max / np.nanmax(v0v_contra_convolved)
             v0v_scale = v0v_isf_max / V0v_conv_max
-            v0d_scale = v0d_isf_max / V0d_conv_max
-            v0d_contra_scale = v0d_contra_isf_max / V0d_contra_conv_max
+          
                 
             
         if nn.low_locomotion_v0d_left and nn.low_locomotion_v0d_right: 
@@ -722,10 +744,12 @@ def cpg_utils(nn,popfunc, conn,
             v0d_contra_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v0d_contra_freq]))
             V0d_conv_max = np.nanmax(v0d_convolved)
             V0d_contra_conv_max = np.nanmax(v0d_contra_convolved)
-            
 
             print('Max Firing rate of V0D (Ipsilateral) (ISF):', round(v0d_isf_max,2), ' Max Firing rate of V0D (Contralateral) (ISF)', round(v0d_contra_isf_max,2))
-       
+            
+            v0d_scale = v0d_isf_max / V0d_conv_max
+            v0d_contra_scale = v0d_contra_isf_max / V0d_contra_conv_max
+            
 
         v1a1_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v1a1_freq]))
         v1a2_isf_max = np.nanmax(np.array([np.nanmean(neuron_freq) for neuron_freq in v1a2_freq]))
@@ -803,8 +827,9 @@ def cpg_utils(nn,popfunc, conn,
 
         
         # Scaling mnp1 & mnp2 contra 
-        mnp1_contra_convolved_scaled = mnp1_convolved_contra * mnp1_scale 
-        mnp2_conta_convolved_scaled = mnp2_convolved_contra & mnp2_scale
+        mnp1_contra_convolved_scaled = mnp1_convolved_contra * mnp1_scale
+        mnp2_conta_convolved_scaled = mnp2_convolved_contra * mnp2_scale
+        
         mnp1_contra_convolved_scaled_mean = np.nanmean(mnp1_contra_convolved_scaled)
         mnp2_conta_convolved_scaled_mean = np.nanmean(mnp2_conta_convolved_scaled)
         mnp1_contra_convolved_max_scaled = np.nanmax(mnp1_convolved_contra * mnp1_scale)
@@ -1077,8 +1102,8 @@ def cpg_utils(nn,popfunc, conn,
             plt.close()
 
         
-        if nn.args['heatmap_recruitment_plot']: 
 
+        if nn.args['heatmap_recruitment_plot']: 
 
             def plot_recruitment_heatmap(
                 title,
@@ -1149,6 +1174,234 @@ def cpg_utils(nn,popfunc, conn,
                 )
 
 
+            if nn.args['online_ramp_heatmap_recruitment_plot']: 
+
+                import numpy as np
+                import matplotlib.pyplot as plt
+                import matplotlib.ticker as mticker
+
+                def plot_recruitment_heatmap_boxes(
+                    *,
+                    title: str,
+                    convolved_activity: np.ndarray,   # shape: (n_neurons, n_time)
+                    time_vec: np.ndarray,             # shape: (n_time,)
+                    neuron_ids=None,                  # list/array length n_neurons (optional)
+                    ramp_weight_log=None,             # dict {"time":[...], "weight":[...]} optional
+                    cmap: str = "plasma",
+                    save_path: str | None = None,
+                    show: bool = True,
+                    max_y_ticks: int = 12
+                ):
+                    """
+                    Heatmap where each pixel = one neuron's activity at one time bin.
+                    No population mean plot.
+                    Optionally adds weight-vs-time panel underneath for online ramp.
+                    """
+
+                    A = np.asarray(convolved_activity, dtype=float)
+                    t = np.asarray(time_vec, dtype=float)
+
+                    if A.ndim != 2:
+                        raise ValueError(f"convolved_activity must be 2D (neurons x time). Got shape {A.shape}")
+                    if t.ndim != 1:
+                        raise ValueError(f"time_vec must be 1D. Got shape {t.shape}")
+                    if A.shape[1] != t.size:
+                        raise ValueError(f"Mismatch: activity has {A.shape[1]} timepoints but time_vec has {t.size}")
+
+                    n_neurons, n_time = A.shape
+
+                    # Labels
+                    if neuron_ids is None:
+                        neuron_ids = np.arange(n_neurons)
+                        y_label = "Neuron index"
+                    else:
+                        neuron_ids = np.asarray(neuron_ids)
+                        if neuron_ids.size != n_neurons:
+                            raise ValueError(f"neuron_ids length {neuron_ids.size} != n_neurons {n_neurons}")
+                        y_label = "Neuron ID"
+
+                    # Optional weight interpolation onto time_vec
+                    ramp_w_interp = None
+                    if ramp_weight_log is not None:
+                        ramp_t = np.asarray(ramp_weight_log.get("time", []), dtype=float)
+                        ramp_w = np.asarray(ramp_weight_log.get("weight", []), dtype=float)
+                        if ramp_t.size > 1 and ramp_w.size == ramp_t.size:
+                            order = np.argsort(ramp_t)
+                            ramp_t = ramp_t[order]
+                            ramp_w = ramp_w[order]
+                            ramp_w_interp = np.interp(t, ramp_t, ramp_w, left=ramp_w[0], right=ramp_w[-1])
+
+                    # Layout
+                    nrows = 2 if ramp_w_interp is not None else 1
+                    height_ratios = [3.0, 1.0] if nrows == 2 else [1.0]
+
+                    fig, axes = plt.subplots(
+                        nrows, 1,
+                        figsize=(18, 7 if nrows == 1 else 10),
+                        sharex=True,
+                        gridspec_kw={"height_ratios": height_ratios}
+                    )
+                    if nrows == 1:
+                        ax_hm = axes
+                        ax_w = None
+                    else:
+                        ax_hm, ax_w = axes
+
+                    # Heatmap (pixel boxes)
+                    im = ax_hm.imshow(
+                        A,
+                        aspect="auto",
+                        origin="lower",
+                        extent=[t[0], t[-1], 0, n_neurons],
+                        cmap=cmap,
+                        interpolation="nearest"   # IMPORTANT: keeps pixel boxes sharp
+                    )
+                    ax_hm.set_title(title)
+                    ax_hm.set_ylabel(y_label)
+
+                    # y ticks (don’t label thousands of neurons)
+                    if n_neurons <= max_y_ticks:
+                        idx = np.arange(n_neurons)
+                    else:
+                        idx = np.linspace(0, n_neurons - 1, max_y_ticks).astype(int)
+
+                    ax_hm.set_yticks(idx + 0.5)
+                    ax_hm.set_yticklabels([str(neuron_ids[i]) for i in idx])
+
+                    cbar = fig.colorbar(im, ax=ax_hm, pad=0.01)
+                    cbar.set_label("Convolved firing rate")
+
+                    # Optional weight plot
+                    if ax_w is not None:
+                        ax_w.plot(t, ramp_w_interp)
+                        ax_w.set_title("Synaptic weight over time")
+                        ax_w.set_ylabel("Weight")
+                        ax_w.set_xlabel("Time (ms)")
+                        ax_w.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.3f"))
+
+                    else:
+                        ax_hm.set_xlabel("Time (ms)")
+
+                    fig.tight_layout()
+
+                    if save_path is not None:
+                        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+
+                    if show:
+                        plt.show()
+                    else:
+                        plt.close(fig)
+
+                    return fig
+                
+                
+                if nn.args['low_locomotion_v0d_left'] & nn.args['low_locomotion_v0d_right']:
+
+                    pop_mean, time_vec, smoothed_spikes = popfunc.convolve_spiking_activity(pop_size, spiketimes)
+
+                    plot_recruitment_heatmap_boxes(
+                        title=f"{label} | V0d recruitment (ONLINE RAMP) | {ramp_weight_name}",
+                        convolved_activity=smoothed_spikes,
+                        time_vec=time_vec,
+                        neuron_ids=np.array(L_V0D.v0d_bursting),   # <- real IDs if available
+                        ramp_weight_log=online_ramp_log,           # optional weight trace
+                        save_path=nn.pathFigures + f"/{label}_V0d_recruitment_boxes.png",
+                    )
+
+                if nn.args['low_locomotion_v0v_left'] & nn.args['low_locomotion_v0v_right']:
+
+                    pop_mean, time_vec, smoothed_spikes = popfunc.convolve_spiking_activity(pop_size, spiketimes)
+
+                    plot_recruitment_heatmap_boxes(
+                        title=f"{label} | V0d recruitment (ONLINE RAMP) | {ramp_weight_name}",
+                        convolved_activity=smoothed_spikes,
+                        time_vec=time_vec,
+                        neuron_ids=np.array(L_V0D.v0d_bursting),   # <- real IDs if available
+                        ramp_weight_log=online_ramp_log,           # optional weight trace
+                        save_path=nn.pathFigures + f"/{label}_V0d_recruitment_boxes.png",
+                    )
+
+
+
+
+            # if nn.args['offline_ramp_heatmap_recruitment_plot']:
+
+
+            #     def plot_recruitment_heatmap_offline_ramp(
+            #         title,
+            #         convolved_activity,   # (neurons × time)
+            #         time_vec,
+            #         save_path=None
+            #     ):
+            #         # Sort neurons by mean firing rate
+            #         sorted_activity = convolved_activity
+
+            #         # should be Neuron ID1, Neuron ID2 ... we should just take them.
+            #         # and this should be the label on the y-axis. 
+            #         # x-axis should be the time of the experiment. 
+            #         # since this is an offline ramp we are also going to have a label on the weight? 
+            #   ax_w = fig.add_subplot(gs[5, :])
+            # ax_w.plot(t, ramp_w_interp)
+
+            # ax_w.set_title(f"{ramp_weight_name} (weight over time)")
+            # ax_w.set_xlabel("Time (ms)")
+            # ax_w.set_ylabel("Weight")
+
+            # # ---- FORCE more Y-axis ticks ----
+            # w_min = np.min(ramp_w_interp)
+            # w_max = np.max(ramp_w_interp)
+
+            # ax_w.set_ylim(w_min, w_max)
+
+            # # Put a tick every 0.25 (or 0.1 / 0.5 depending on scale)
+            # tick_step = 0.5
+            # ax_w.set_yticks(np.arange(
+            #     np.floor(w_min / tick_step) * tick_step,
+            #     np.ceil(w_max / tick_step) * tick_step + tick_step,
+            #     tick_step
+            # ))
+
+            # ax_w.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.2f"))
+
+            # # Save once
+            # if nn.args["save_results"]:
+            #     plt.savefig(
+            #         nn.pathFigures + f"/{label}_ONLINE_RAMP_RG_V2a_V0v_V1_MNP_WEIGHT.png",
+            #         dpi=300,
+            #         bbox_inches="tight"
+            #     )
+
+            # plt.close(fig)
+
+
+            #         pop_mean = np.nanmean(convolved_activity, axis=0)
+
+            #         fig, ax = plt.subplots(2, 1, figsize=(18, 12), sharex=True)
+
+            #         ax[0].plot(time_vec, pop_mean)
+            #         ax[0].set_ylabel("Population firing rate (a.u.)")
+            #         ax[0].set_title(title)
+
+            #         im = ax[1].imshow(
+            #             sorted_activity,
+            #             aspect="auto",
+            #             origin="lower",
+            #             extent=[time_vec[0], time_vec[-1], 0, sorted_activity.shape[0]],
+            #             cmap="plasma"
+            #         )
+
+            #         ax[1].set_ylabel("Neuron ID")
+            #         ax[1].set_xlabel("Time (ms)")
+            #         fig.colorbar(im, ax=ax[1], label="Convolved firing rate")
+
+            #         plt.tight_layout()
+
+            #         if save_path is not None:
+            #             plt.savefig(save_path, dpi=300, bbox_inches="tight")
+
+            #         plt.show()
+
+
 
 
         if ramp_type == "offline" and ramp_weight is not None and nn.args['low_locomotion_v0v_left'] & nn.args['low_locomotion_v0v_right']:
@@ -1157,7 +1410,6 @@ def cpg_utils(nn,popfunc, conn,
             print("[INFO] V0V Offline Ramp Plotting In Progress...")
             print("===============================================")
             time.sleep(5)
-
 
             from matplotlib import gridspec
 
@@ -1254,14 +1506,15 @@ def cpg_utils(nn,popfunc, conn,
             plt.close()
 
 
-        if ramp_type == "offline" and ramp_weight is not None and nn.args['low_locomotion_v0d_left'] & nn.args['low_locomotion_v0d_right']:
+        if ramp_type == "offline" and ramp_weight is not None and nn.args['low_locomotion_v0d_left'] and nn.args['low_locomotion_v0d_right']:
 
-            print("===============================================")
-            print("[INFO] V0D Offline Ramp Plotting In Progress...")
-            print("===============================================")
-            time.sleep(5)
+            print("[INFO] V0D Offline Ramp Plotting In Progress.")
+        
+            print("[PLOT DEBUG] ramp_w min/max:", np.min(ramp_w), np.max(ramp_w))
+            print("[PLOT DEBUG] first/last:", ramp_w[0], ramp_w[-1])
+            time.sleep(3)
             
-            
+
             import matplotlib.gridspec as gridspec
 
             fig = plt.figure(figsize=(16, 12))
@@ -1306,7 +1559,6 @@ def cpg_utils(nn,popfunc, conn,
             ax_mnp_left.plot(t, mnp2_convolved * mnp2_scale)
 
             ax_mnp_left.legend(["FLX ipsi", "EXT ipsi"], fontsize="xx-small")
-
             
             ax_mnp_right.plot(t, contra_mnp1_convolved * contra_mnp1_scale, linestyle='--', alpha=0.6)
             ax_mnp_right.plot(t, contra_mnp2_convolved * contra_mnp2_scale, linestyle='--', alpha=0.6)
@@ -1326,23 +1578,51 @@ def cpg_utils(nn,popfunc, conn,
 
 
 
-        if ramp_type == "online" and ramp_weight is not None and nn.args['low_locomotion_v0v_left'] & nn.args['low_locomotion_v0v_right']:
+    if (
+        ramp_type == "online"
+        and ramp_weight is not None
+        and nn.args["low_locomotion_v0v_left"]
+        and nn.args["low_locomotion_v0v_right"]
+    ):
+        
+        from matplotlib import gridspec
+        import matplotlib.ticker as mticker
 
-            print("===============================================")
-            print("[INFO] V0V Online Ramp Plotting In Progress...")
-            print("===============================================")
-            time.sleep(5)
+        print("[INFO] V0V Online Ramp Plotting In Progress.")
+        time.sleep(5)
 
-            from matplotlib import gridspec
+        ramp_t = np.asarray(ramp_weight["time"], dtype=float)
+        ramp_w = np.asarray(ramp_weight["weight"], dtype=float)
 
-            fig = plt.figure(figsize=(16, 14))
-            gs = gridspec.GridSpec(5, 2, height_ratios=[1.2, 1.0, 1.0, 1.2, 1.0])  
-            # Rows: RG, V2a, V1, V0v, MNP
+        # Safety
+        if ramp_t.size == 0 or ramp_w.size == 0:
+            print("[WARN] ramp_weight log is empty; skipping ONLINE ramp plot.")
+        elif ramp_t.size != ramp_w.size:
+            print(f"[WARN] ramp_t and ramp_w length mismatch: {ramp_t.size} vs {ramp_w.size}; skipping plot.")
+        else:
+            # Sort for interpolation
+            order = np.argsort(ramp_t)
+            ramp_t = ramp_t[order]
+            ramp_w = ramp_w[order]
 
-            # ramp_log = ramp_weight, this is passed differently depending on the online or offline access. 
+            t = np.asarray(t, dtype=float)
 
-            ramp_t = np.asarray(ramp_weight["time"])
-            ramp_w = np.asarray(ramp_weight["weight"])
+            # Interpolate weight onto the same time base as your convolved traces
+            ramp_w_interp = np.interp(t, ramp_t, ramp_w)
+
+            # -------- Figure layout: add a bottom row for weight --------
+            fig = plt.figure(figsize=(16, 15), constrained_layout=True)
+            gs = gridspec.GridSpec(
+                6, 2,
+                height_ratios=[1.2, 1.0, 1.0, 1.0, 1.2, 0.9],  # RG, V2a, V0v, V1, MNP, Weight
+                figure=fig
+            )
+
+            fig.suptitle(
+                f"{label} | ONLINE RAMP | {ramp_weight_name} "
+                f"({np.nanmin(ramp_w):.2f} → {np.nanmax(ramp_w):.2f})",
+                fontsize=20
+            )
 
             # ----------------------------------------------------------
             # ROW 1: RG
@@ -1352,12 +1632,12 @@ def cpg_utils(nn,popfunc, conn,
 
             ax_rg_left.plot(t, rg1_convolved * rg1_scale)
             ax_rg_left.plot(t, rg2_convolved * rg2_scale)
-            ax_rg_left.set_title("RG Left")
+            ax_rg_left.set_title("RG Left (ipsilateral)")
             ax_rg_left.legend(["RG_F ipsi", "RG_E ipsi"], fontsize="xx-small")
 
-            ax_rg_right.plot(t, contra_rg1_convolved * contra_rg1_scale, linestyle='--', alpha=0.7)
-            ax_rg_right.plot(t, contra_rg2_convolved * contra_rg2_scale, linestyle='--', alpha=0.7)
-            ax_rg_right.set_title("RG Right")
+            ax_rg_right.plot(t, contra_rg1_convolved * contra_rg1_scale, linestyle="--", alpha=0.7)
+            ax_rg_right.plot(t, contra_rg2_convolved * contra_rg2_scale, linestyle="--", alpha=0.7)
+            ax_rg_right.set_title("RG Right (contralateral)")
             ax_rg_right.legend(["RG_F contra", "RG_E contra"], fontsize="xx-small")
 
             # ----------------------------------------------------------
@@ -1366,59 +1646,51 @@ def cpg_utils(nn,popfunc, conn,
             ax_v2a_left  = fig.add_subplot(gs[1, 0])
             ax_v2a_right = fig.add_subplot(gs[1, 1])
 
-            ax_v2a_left.plot(t, v2a1_convolved * v2a1_scale, color="tab:green")
+            ax_v2a_left.plot(t, v2a1_convolved * v2a1_scale)
             ax_v2a_left.set_title("V2a Left (ipsilateral)")
             ax_v2a_left.set_ylabel("Freq (Hz)")
 
-            ax_v2a_right.plot(t, v2a_contra_convolved * contra_v2a_scale, color="tab:green")
+            ax_v2a_right.plot(t, v2a_contra_convolved * contra_v2a_scale)
             ax_v2a_right.set_title("V2a Right (contralateral)")
 
-    
             # ----------------------------------------------------------
-            # ROW 3: V0v - coloured by trace... 
+            # ROW 3: V0v (plain lines; no color)
             # ----------------------------------------------------------
             ax_v0v_left  = fig.add_subplot(gs[2, 0])
             ax_v0v_right = fig.add_subplot(gs[2, 1])
 
-            lc_left = popfunc.plot_colored_trace(
-                ax=ax_v0v_left,
-                t=t,
-                y=v0v_convolved * v0v_scale,
-                weights=ramp_w,
-                cmap="viridis", 
-            )
-
-  
+            ax_v0v_left.plot(t, v0v_convolved * v0v_scale)
             ax_v0v_left.set_title("V0v Left (ipsilateral)")
+            ax_v0v_left.set_ylabel("Freq (Hz)")
 
-            lc_right = popfunc.plot_colored_trace(
-                ax=ax_v0v_right,
-                t=t,
-                y=v0v_contra_convolved * v0v_contra_scale,
-                weights=ramp_w,
-                cmap="viridis",
-            )
-
+            ax_v0v_right.plot(t, v0v_contra_convolved * v0v_contra_scale)
             ax_v0v_right.set_title("V0v Right (contralateral)")
+
+            # Keep V0v y-lims comparable between ipsi/contra
+            v0v_left_y  = v0v_convolved * v0v_scale
+            v0v_right_y = v0v_contra_convolved * v0v_contra_scale
+            ymax = np.nanmax([np.nanmax(v0v_left_y), np.nanmax(v0v_right_y)])
+            if np.isfinite(ymax) and ymax > 0:
+                ax_v0v_left.set_ylim(0, ymax * 1.1)
+                ax_v0v_right.set_ylim(0, ymax * 1.1)
 
             # ----------------------------------------------------------
             # ROW 4: V1
             # ----------------------------------------------------------
-            
-            ax_v1_left = fig.add_subplot(gs[3, 0])
+            ax_v1_left  = fig.add_subplot(gs[3, 0])
             ax_v1_right = fig.add_subplot(gs[3, 1])
 
-            ax_v1_left.plot(t, v1_convolved * v1_scale, color="tab:blue")
+            ax_v1_left.plot(t, v1_convolved * v1_scale)
             ax_v1_left.set_title("V1 Left Hemicord (Ipsilateral)")
+            ax_v1_left.set_ylabel("Freq (Hz)")
 
-            ax_v1_right.plot(t, v1_contra_convolved * v1_scale_contra, color="tab:red")
+            ax_v1_right.plot(t, v1_contra_convolved * v1_scale_contra)
             ax_v1_right.set_title("V1 Right Hemicord (Contralateral)")
 
-
             # ----------------------------------------------------------
-            # ROW 4: MNP
+            # ROW 5: MNP
             # ----------------------------------------------------------
-            ax_mnp_left = fig.add_subplot(gs[4, 0])
+            ax_mnp_left  = fig.add_subplot(gs[4, 0])
             ax_mnp_right = fig.add_subplot(gs[4, 1])
 
             ax_mnp_left.plot(t, mnp1_convolved * mnp1_scale)
@@ -1427,191 +1699,212 @@ def cpg_utils(nn,popfunc, conn,
             ax_mnp_left.set_title("MNP Left")
             ax_mnp_left.set_xlabel("Time (ms)")
 
-            ax_mnp_right.plot(t, contra_mnp1_convolved * contra_mnp1_scale, linestyle='--', alpha=0.7)
-            ax_mnp_right.plot(t, contra_mnp2_convolved * contra_mnp2_scale, linestyle='--', alpha=0.7)
+            ax_mnp_right.plot(t, contra_mnp1_convolved * contra_mnp1_scale, linestyle="--", alpha=0.7)
+            ax_mnp_right.plot(t, contra_mnp2_convolved * contra_mnp2_scale, linestyle="--", alpha=0.7)
             ax_mnp_right.legend(["FLX contra", "EXT contra"], fontsize="xx-small")
             ax_mnp_right.set_title("MNP Right")
             ax_mnp_right.set_xlabel("Time (ms)")
 
-            plt.tight_layout()
+            # ----------------------------------------------------------
+            # ROW 6: Weight vs time (spans both columns)
+            # ----------------------------------------------------------
+            ax_w = fig.add_subplot(gs[5, :])
+            ax_w.plot(t, ramp_w_interp)
 
-            if nn.args['save_results']:
-                plt.savefig(nn.pathFigures + '/' + f"{label}_RG_V2a_V0v_MNP_combined.png",
-                            dpi=300, bbox_inches="tight")
+            ax_w.set_title(f"{ramp_weight_name} (weight over time)")
+            ax_w.set_xlabel("Time (ms)")
+            ax_w.set_ylabel("Weight")
 
-            plt.close()
+            # ---- FORCE more Y-axis ticks ----
+            w_min = np.min(ramp_w_interp)
+            w_max = np.max(ramp_w_interp)
 
-            # ==========================================================
-            # COLORBAR = ONLINE WEIGHT LEGEND
-            # ==========================================================
-            cbar = fig.colorbar(
-                lc_left,
-                ax=[ax_v0v_left, ax_v0v_right],
-                fraction=0.025,
-                pad=0.02
-            )
-            cbar.set_label(
-                f"{ramp_weight_name} (synaptic weight)",
-                fontsize=11
-            )
+            ax_w.set_ylim(w_min, w_max)
 
-             # ==========================================================
-            # FIGURE TITLE
-            # ==========================================================
-            fig.suptitle(
-                f"{label} | ONLINE RAMP | {ramp_weight_name}: "
-                f"{np.min(ramp_w):.2f} → "
-                f"{np.max(ramp_w):.2f}",
-                fontsize=14,
-                y=0.98
-            )
+            # Put a tick every 0.25 (or 0.1 / 0.5 depending on scale)
+            tick_step = 0.5
+            ax_w.set_yticks(np.arange(
+                np.floor(w_min / tick_step) * tick_step,
+                np.ceil(w_max / tick_step) * tick_step + tick_step,
+                tick_step
+            ))
 
-            plt.tight_layout(rect=[0, 0, 1, 0.96])
+            ax_w.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.2f"))
 
-            if nn.args['save_results']:
+            # Save once
+            if nn.args["save_results"]:
                 plt.savefig(
-                    nn.pathFigures + f"/{label}_ONLINE_RAMP_RG_V2a_V0v_MNP.png",
+                    nn.pathFigures + f"/{label}_ONLINE_RAMP_RG_V2a_V0v_V1_MNP_WEIGHT.png",
                     dpi=300,
                     bbox_inches="tight"
                 )
 
-            plt.close()
+            plt.close(fig)
+
+    else:
+        ramp_t = None
+        ramp_w = None
+
+
+
+
+    if (
+        ramp_type == "online"
+        and ramp_weight is not None
+        and nn.args["low_locomotion_v0d_left"]
+        and nn.args["low_locomotion_v0d_right"]
+    ):
+        print("[INFO] V0D Online Ramp Plotting In Progress...")
+
+        import matplotlib.gridspec as gridspec
+        import matplotlib.ticker as mticker
+
+        ramp_t = np.asarray(ramp_weight["time"], dtype=float)
+        ramp_w = np.asarray(ramp_weight["weight"], dtype=float)
+
+        # Safety
+        if ramp_t.size == 0 or ramp_w.size == 0:
+            print("[WARN] ramp_weight log is empty; skipping ONLINE ramp plot.")
+        elif ramp_t.size != ramp_w.size:
+            print(f"[WARN] ramp_t and ramp_w length mismatch: {ramp_t.size} vs {ramp_w.size}; skipping plot.")
         else:
-            ramp_t = None
-            ramp_w = None
+            # Ensure sorted times for interpolation
+            order = np.argsort(ramp_t)
+            ramp_t = ramp_t[order]
+            ramp_w = ramp_w[order]
+
+            t = np.asarray(t, dtype=float)
+
+            # print("[DEBUG] t head:", t[:5], "tail:", t[-5:])
+            # print("[DEBUG] ramp_t head:", ramp_t[:5], "tail:", ramp_t[-5:])
+            # print("[DEBUG] ramp_t range:", ramp_t.min(), "→", ramp_t.max())
+            # print("[DEBUG] ramp_w range:", ramp_w.min(), "→", ramp_w.max())
+            # time.sleep(10)
+
+            # Interpolate ramp weights onto your convolved time vector
+            # (Assumes same units; usually ms)
+            ramp_w_interp = np.interp(t, ramp_t, ramp_w)
+
+            print("\n [DEBUG] RAMP SANITY CHECK")
+            print("Requested w_start/w_end:", nn.w_start, nn.w_end)
+            print("ramp_t min/max:", float(np.min(ramp_t)), float(np.max(ramp_t)))
+            print("ramp_w min/max:", float(np.min(ramp_w)), float(np.max(ramp_w)))
+            print("t min/max:", float(np.min(t)), float(np.max(t)))
+            print("interp min/max:", float(np.min(ramp_w_interp)), float(np.max(ramp_w_interp)))
+            print("last 5 ramp_w:", ramp_w[-5:])
 
 
-        if ramp_type == "online" and ramp_weight is not None and nn.args['low_locomotion_v0d_left'] & nn.args['low_locomotion_v0d_right']:
-
-            print("===============================================")
-            print("[INFO] V0D Online Ramp Plotting In Progress...")
-            print("===============================================")
-            time.sleep(5)
-
-            # For ONLINE RAMP online ramp log = ramp_weight
-
-            ramp_t = np.asarray(ramp_weight["time"])
-            ramp_w = np.asarray(ramp_weight["weight"])
-
-
-            
-            import matplotlib.gridspec as gridspec
-
-            fig = plt.figure(figsize=(16, 12))
+            # ----- FIGURE: 4 rows x 2 cols -----
+            fig = plt.figure(figsize=(16, 13), constrained_layout=True)
             gs = gridspec.GridSpec(
-                3, 2,
-                height_ratios=[1.2, 1.0, 1.2]  # RG, V0d, MNP
+                4, 2,
+                height_ratios=[1.2, 1.0, 1.2, 0.7],  # RG, V0d, MNP, Weight
+                figure=fig
             )
 
-            fig.suptitle(
-                f"{label} | ONLINE RAMP | {ramp_weight_name}",
-                fontsize=14,
-                y=0.98
-            )
+            fig.suptitle(f"{label} | ONLINE RAMP | {ramp_weight_name}", fontsize=14)
 
-            # ==========================================================
+            # =========================
             # ROW 1: RG
-            # ==========================================================
+            # =========================
             ax_rg_left  = fig.add_subplot(gs[0, 0])
             ax_rg_right = fig.add_subplot(gs[0, 1])
 
             ax_rg_left.plot(t, rg1_convolved * rg1_scale)
             ax_rg_left.plot(t, rg2_convolved * rg2_scale)
+            ax_rg_left.set_title("RG Ipsilateral")
             ax_rg_left.legend(["RG_F ipsi", "RG_E ipsi"], fontsize="xx-small")
 
-            ax_rg_right.plot(
-                t,
-                contra_rg1_convolved * contra_rg1_scale,
-                linestyle="--", alpha=0.6
-            )
-            ax_rg_right.plot(
-                t,
-                contra_rg2_convolved * contra_rg2_scale,
-                linestyle="--", alpha=0.6
-            )
+            ax_rg_right.plot(t, contra_rg1_convolved * contra_rg1_scale, linestyle="--", alpha=0.6)
+            ax_rg_right.plot(t, contra_rg2_convolved * contra_rg2_scale, linestyle="--", alpha=0.6)
+            ax_rg_right.set_title("RG Contralateral")
             ax_rg_right.legend(["RG_F contra", "RG_E contra"], fontsize="xx-small")
 
-            # ==========================================================
-            # ROW 2: V0d (ONLINE COLOURED TRACE)
-            # ==========================================================
-            
-             #  linked to plot_colored_trace 
+            # =========================
+            # ROW 2: V0d (plain lines, no colorbar)
+            # =========================
             ax_v0d_left  = fig.add_subplot(gs[1, 0])
             ax_v0d_right = fig.add_subplot(gs[1, 1])
 
-            lc_v0d_left = popfunc.plot_colored_trace(
-                ax=ax_v0d_left,
-                t=t,
-                y=v0d_convolved * v0d_scale,
-                weights=ramp_w,
-                cmap="viridis",
-                lw=2.0
-            )
+            ax_v0d_left.plot(t, v0d_convolved * v0d_scale)
             ax_v0d_left.set_title("V0d Ipsilateral (Left Inhibitory Output)")
             ax_v0d_left.set_ylabel("Freq (Hz)")
 
-            lc_v0d_right = popfunc.plot_colored_trace(
-                ax=ax_v0d_right,
-                t=t,
-                y=v0d_contra_convolved * v0d_contra_scale,
-                weights=ramp_w,
-                cmap="viridis",
-                lw=2.0
-            )
+            ax_v0d_right.plot(t, v0d_contra_convolved * v0d_contra_scale)
             ax_v0d_right.set_title("V0d Contralateral (Cross-midline Inhibition)")
 
-            # ==========================================================
+            # Keep V0d y-lims comparable between ipsi/contra
+            v0d_left_y  = v0d_convolved * v0d_scale
+            v0d_right_y = v0d_contra_convolved * v0d_contra_scale
+            ymax = np.nanmax([np.nanmax(v0d_left_y), np.nanmax(v0d_right_y)])
+            if np.isfinite(ymax) and ymax > 0:
+                ax_v0d_left.set_ylim(0, ymax * 1.1)
+                ax_v0d_right.set_ylim(0, ymax * 1.1)
+
+            # =========================
             # ROW 3: MNP
-            # ==========================================================
+            # =========================
             ax_mnp_left  = fig.add_subplot(gs[2, 0])
             ax_mnp_right = fig.add_subplot(gs[2, 1])
 
             ax_mnp_left.plot(t, mnp1_convolved * mnp1_scale)
             ax_mnp_left.plot(t, mnp2_convolved * mnp2_scale)
+            ax_mnp_left.set_title("MNP Ipsilateral")
             ax_mnp_left.legend(["FLX ipsi", "EXT ipsi"], fontsize="xx-small")
 
-            ax_mnp_right.plot(
-                t,
-                contra_mnp1_convolved * contra_mnp1_scale,
-                linestyle="--", alpha=0.6
-            )
-            ax_mnp_right.plot(
-                t,
-                contra_mnp2_convolved * contra_mnp2_scale,
-                linestyle="--", alpha=0.6
-            )
+            ax_mnp_right.plot(t, contra_mnp1_convolved * contra_mnp1_scale, linestyle="--", alpha=0.6)
+            ax_mnp_right.plot(t, contra_mnp2_convolved * contra_mnp2_scale, linestyle="--", alpha=0.6)
+            ax_mnp_right.set_title("MNP Contralateral")
             ax_mnp_right.legend(["FLX contra", "EXT contra"], fontsize="xx-small")
 
             ax_mnp_left.set_xlabel("Time (ms)")
             ax_mnp_right.set_xlabel("Time (ms)")
 
-            # ==========================================================
-            # COLORBAR = ONLINE WEIGHT LEGEND
-            # ==========================================================
-            cbar = fig.colorbar(
-                lc_v0d_left,
-                ax=[ax_v0d_left, ax_v0d_right],
-                fraction=0.035,
-                pad=0.03
-            )
-            cbar.set_label(
-                f"{ramp_weight_name} (online synaptic weight)",
-                fontsize=11
-            )
+            import matplotlib.ticker as mticker
 
-            plt.tight_layout(rect=[0, 0, 1, 0.95])
+            # ----------------------------------------------------------
+            # ROW 4: Weight vs time (spans both columns)
+            # ----------------------------------------------------------
+            ax_w = fig.add_subplot(gs[3, :])
+            ax_w.plot(t, ramp_w_interp)
 
-            if nn.args['save_results']:
+            ax_w.set_title(f"{ramp_weight_name} (weight over time)")
+            ax_w.set_xlabel("Time (ms)")
+            ax_w.set_ylabel("Weight")
+
+            w_min = float(np.min(ramp_w_interp))
+            w_max = float(np.max(ramp_w_interp))
+
+            # y-lims with padding if constant
+            if np.isclose(w_min, w_max):
+                pad = 0.5 if w_min == 0 else abs(w_min) * 0.1
+                ax_w.set_ylim(w_min - pad, w_max + pad)
+            else:
+                ax_w.set_ylim(w_min, w_max)
+
+            # More y ticks
+            rng = abs(w_max - w_min)
+            tick_step = 0.25 if rng <= 3 else 0.5
+
+            start = np.floor(w_min / tick_step) * tick_step
+            end   = np.ceil(w_max / tick_step) * tick_step + tick_step
+            ax_w.set_yticks(np.arange(start, end, tick_step))
+
+            ax_w.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.2f"))
+
+             # Save once
+            if nn.args["save_results"]:
                 plt.savefig(
-                    nn.pathFigures + f"/{label}_ONLINE_RAMP_RG_V0d_MNP.png",
+                    nn.pathFigures + f"/{label}_ONLINE_RAMP_RG_V0D_MNP_WEIGHT.png",
                     dpi=300,
                     bbox_inches="tight"
                 )
 
-            plt.close()
-        else: 
-            ramp_t = None
-            ramp_w = None
+            plt.close(fig)
+
+    else:
+        ramp_t = None
+        ramp_w = None
 
 
 
@@ -1776,3 +2069,59 @@ def cpg_utils(nn,popfunc, conn,
         np.savetxt(nn.pathFigures + f'/{label}output_1a2.csv',spike_bins_V1a_2_true,delimiter=',')
         np.savetxt(nn.pathFigures + f'/{label}output_rc1.csv',spike_bins_rc_1_true,delimiter=',')
         np.savetxt(nn.pathFigures + f'/{label}output_rc2.csv',spike_bins_rc_2_true,delimiter=',')
+
+   # ---------------- METRICS TABLE (CLEAN) ----------------
+    existing_metrics = {
+        # already computed in cpg_utils/cpg_data_utils:
+        "rg_flx_isf_max": rg1_isf_max,
+        "rg_ext_isf_max": rg2_isf_max,
+        "mnp_flx_isf_max": mnp1_isf_max,
+        "mnp_ext_isf_max": mnp2_isf_max,
+    }
+
+    populations = {
+        "MNP_ipsilateral": {
+            "signals": {"FLX": mnp1_convolved_scaled, "EXT": mnp2_convolved_scaled},
+            "pairs": [("FLX", "EXT")]
+        },
+        "RG_ipsilateral": {
+            "signals": {"RG_F": rg1_convolved_scaled, "RG_E": rg2_convolved_scaled},
+            "pairs": [("RG_F", "RG_E")]
+        },
+        "MNP_contralateral": {
+            "signals": {"FLX": contra_mnp1_convolved * contra_mnp1_scale,
+                        "EXT": contra_mnp2_convolved * contra_mnp2_scale},
+            "pairs": [("FLX", "EXT")]
+        },
+        "RG_contralateral": {
+            "signals": {"RG_F": contra_rg1_convolved * contra_rg1_scale,
+                        "RG_E": contra_rg2_convolved * contra_rg2_scale},
+            "pairs": [("RG_F", "RG_E")]
+        },
+    }
+
+    meta = {
+        "ramp_weight_name": ramp_weight_name,
+        "w_start": nn.w_start,
+        "w_end": nn.w_end,
+        "ramp_type": ramp_type,
+    }
+
+    out_csv = nn.pathFigures + f"/{label}_metrics_summary_table_CLEAN.csv"
+
+    df_metrics = popfunc.export_metrics_table_clean(
+        out_csv_path=out_csv,
+        label=label,
+        t_ms=t,
+        populations=populations,
+        existing=existing_metrics,
+        meta=meta,
+        thresh_frac=0.2,
+        min_peak_distance_ms=200.0,
+        round_ndp=4,
+    )
+
+    print("[INFO] Saved CLEAN metrics table:", out_csv)
+    print(df_metrics.to_string(index=False))
+    # -------------------------------------------------------
+

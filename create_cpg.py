@@ -117,8 +117,6 @@ if nn.remove_descending_drive==0:
     L_V0C_1.create_commissural_population(pop_type='V0C',self_connection='none',firing_behavior='tonic',pop_size=nn.v0c_pop_size,input_type='descending')
     L_V0C_2.create_commissural_population(pop_type='V0C',self_connection='none',firing_behavior='tonic',pop_size=nn.v0c_pop_size,input_type='descending')
     
-
-
     L_V1a_1.create_interneuron_population(pop_type='V1a_1',self_connection='none',firing_behavior='tonic',pop_size=nn.v1a_pop_size,input_type='sensory_feedback')
     L_V1a_2.create_interneuron_population(pop_type='V1a_2',self_connection='none',firing_behavior='tonic',pop_size=nn.v1a_pop_size,input_type='sensory_feedback')
 
@@ -273,22 +271,23 @@ if nn.rgs_connected == 1:
         
         print("Creating Connections for LEFT V0d - LOW LOCOMOTION")
 
-        # RG_F → V0d_bursting  (OK)
-        conn.create_connections(L_rg1.rg_exc_bursting, L_V0D.v0d_bursting, 'custom_rg_v0d')
+        # RG_F → V0d_bursting - custom_rg_v0d generic connection we are applying across all connections 
+        conn.create_connections(L_rg1.rg_exc_bursting, L_V0D.v0d_bursting, 'custom_rg_v0d_L')
 
         # V0d_bursting → RG_F CONTRA (inhibitory, correct) - this is the we are wanting to manipulate.
-        conn.create_connections(L_V0D.v0d_bursting, R_rg1.rg_exc_bursting, 'custom_v0d_rg_inh')
+        conn.create_connections(L_V0D.v0d_bursting, R_rg1.rg_exc_bursting, 'custom_v0d_rg_inh_L')
 
     if nn.high_locomotion_v0d_left == 1: 
         
         print("Creating Connections for LEFT V0d - HIGH LOCOMOTION")
 
         # tonic connections v0d ipsilateral from both rg bursting and exc
-        conn.create_connections(L_rg1.rg_exc_tonic, L_V0D.v0d_tonic, 'custom_rg_v0d')
-        conn.create_connections(L_rg2.rg_inh_tonic, L_V0D.v0d_tonic, 'custom_rg_v0d_inh')
+        conn.create_connections(L_rg1.rg_exc_tonic, L_V0D.v0d_tonic, 'custom_rg_v0d_L')
+
+        conn.create_connections(L_rg2.rg_inh_tonic, L_V0D.v0d_tonic, 'custom_rg_v0d_inh_L')
 
          # tonic v0d to contralateral rg tonic 
-        conn.create_connections(L_V0D.v0d_tonic, R_rg1.rg_exc_tonic, 'custom_v0d_rg_inh')
+        conn.create_connections(L_V0D.v0d_tonic, R_rg1.rg_exc_tonic, 'custom_v0d_rg_inh_L')
 
     # =======================================================
     # V0V CONTRALATERAL CODE BELOW
@@ -373,11 +372,9 @@ else:
     R_mnp2.create_mnp(pop_type='mnp_slow_syn_enabled')
 
 
-    # 1 - FLX
-    # 2 - EXT
-    L_V0C_1.create_commissural_population(pop_type='V0C', self_connection='none', firing_behavior='tonic', pop_size=nn.v0v_pop_size, input_type='none')
-    L_V0C_2.create_commissural_population(pop_type='V0C', self_connection='none', firing_behavior='tonic', pop_size=nn.v0v_pop_size, input_type='none')
-    
+   
+    # V0c populations have already been defined
+
     if nn.contralateral_projections_v0c_right == 1: 
 
         # 1 = Flx, 2 = Ext.
@@ -504,24 +501,24 @@ if nn.rgs_connected == 1:
         # burst connections v0d ipsilateral from both rg bursting and exc
 
         # low locomotion burst ipsilateral connection - RG 1 FLEX  to R_V0D excitatory connection. 
-        conn.create_connections(R_rg1.rg_exc_bursting, R_V0D.v0d_bursting, 'custom_rg_v0d')
+        conn.create_connections(R_rg1.rg_exc_bursting, R_V0D.v0d_bursting, 'custom_rg_v0d_R')
 
         # conn.create_connections(R_rg1.rg_inh_bursting, R_V0D.v0d_bursting, 'custom_rg_v0d')
          
         # bursting v0d to contralateral rg bursting - INHIBITORY CONNECTION
-        conn.create_connections(R_V0D.v0d_bursting, L_rg1.rg_exc_bursting, 'custom_v0d_rg_inh')
+        conn.create_connections(R_V0D.v0d_bursting, L_rg1.rg_exc_bursting, 'custom_v0d_rg_inh_R')
 
     if nn.high_locomotion_v0d_right == 1: 
         
         print("Creating Connections for RIGHT V0d - HIGH LOCOMOTION")
 
         # tonic connections v0d ipsilateral from both rg bursting and exc
-        conn.create_connections(R_rg1.rg_exc_tonic, R_V0D.v0d_tonic, 'custom_rg_v0d')
+        conn.create_connections(R_rg1.rg_exc_tonic, R_V0D.v0d_tonic, 'custom_rg_v0d_R')
 
-        conn.create_connections(R_rg1.rg_inh_tonic, R_V0D.v0d_tonic, 'custom_rg_v0d_inh')
+        conn.create_connections(R_rg1.rg_inh_tonic, R_V0D.v0d_tonic, 'custom_rg_v0d_inh_R')
 
         # tonic v0d to contralateral rg tonic 
-        conn.create_connections(R_V0D.v0d_tonic, L_rg1.rg_exc_tonic, 'custom_v0d_rg_inh')
+        conn.create_connections(R_V0D.v0d_tonic, L_rg1.rg_exc_tonic, 'custom_v0d_rg_inh_R')
 
      
     # =======================================================
@@ -568,12 +565,7 @@ if nn.rgs_connected == 1:
         # V1 inhibits the RG_flx 
         conn.create(R_inh2.inh_inter_bursting, L_rg1.rg_exc_bursting,  'custom_v1_rg_contra')
 
-    # Defining V0c subpopulations 
-    # 1 - FLX
-    R_V0C_1.create_commissural_population(pop_type='V0C', self_connection='none', firing_behavior='tonic', pop_size=nn.v0v_pop_size, input_type='none')
-   
-    # 2 - EXT
-    R_V0C_2.create_commissural_population(pop_type='V0C', self_connection='none', firing_behavior='tonic', pop_size=nn.v0v_pop_size, input_type='none')
+    # Defining V0c subpopulations have already been defined... 
     
     if nn.contralateral_projections_v0c_right == 1: 
 
@@ -587,116 +579,76 @@ if nn.rgs_connected == 1:
     # ================================ END OF RIGHT SIDE CPG CODE ==========================================================
    
     ##  =============================== ONLINE RAMP =================================
-    if nn.online_ramp_experiment == 1: 
+    if nn.online_ramp_experiment == 1:
 
         print("[INFO] Online Ramp Experiment is ON")
+        print("scale_start =", nn.w_start, "scale_end =", nn.w_end)
 
-        # ramp experiment params 
-        w_start = 0.0
-        w_end = 10.0
-        ramp_duration = nn.ramp_duration  # ms, taking the config file. 
-        
+        ramp_duration = float(nn.ramp_duration)  # ms
 
-        # initialize BEFORE loop
-        online_ramp_log = {
-            "time": [],
-            "weight": [],
-        }
+        online_ramp_log = {"time": [], "weight": []}
 
-        specified_weight = nn.offline_ramp_weight
-
-        # retrieving connection
+        specified_weight = nn.online_ramp_weight  # e.g. "custom_v0d_rg_inh_L"
         connections = conn.synapses[specified_weight]
+        print(f"[INFO] Ramp target: {specified_weight}, n_conns={len(connections)}")
 
-        # print(f"[DEBUG] Established connection variable: {connections}")
-        # time.sleep(10) #  we might need to apply an np.mean function here. 
+        # ---- sanity check: show what these connections actually are ----
+        sample = nest.GetStatus(connections[:5], ["source", "target", "weight"])
+        print("[DEBUG] sample connections (source,target,weight):", sample)
 
-        # implementing the current baseline input into the connection, contextualising the weight 
+        # ---- snapshot baseline weights ONCE (preserve distribution + sign) ----
+        w0 = np.asarray(nest.GetStatus(connections, "weight"), dtype=float)
+        print("[BASELINE weights]")
+        print("  mean:", float(np.mean(w0)), "min:", float(np.min(w0)), "max:", float(np.max(w0)))
 
-        # init sim 
-        init_time = 50.0  # ms
+        # If you want "increase inhibition", w0 should already be negative on average.
+        # If mean is positive, you are not really inhibitory overall.
+        if np.mean(w0) > 0:
+            print("[WARN] Mean weight is positive. This pathway may not be net-inhibitory.")
+
+
+        # init sim
+        init_time = 50.0
         nest.Simulate(init_time)
+        t0 = float(nest.biological_time)
 
-        num_steps = int(nn.block_time / (nn.time_resolution * 10))
+        step_ms = float(nn.time_resolution) * 10.0
+        num_steps = int(float(nn.block_time) / step_ms)
+
         t_start = time.perf_counter()
 
-         # online loop
         for _ in range(num_steps):
 
-            nest.Simulate(nn.time_resolution * 10)
+            nest.Simulate(step_ms)
+            t = float(nest.biological_time)
 
-            t = nest.biological_time  # ms since start
-
-            # RAMP LOGIC 
-            # if t is less than the ramp duration we can alter the new_weight variable 
-            # the change in weight is determined by linear interpolation t/ramp_duration displaying the progression of the ramp experiment 
-            if t <= ramp_duration:
-                new_weight = w_start + (w_end - w_start) * (t / ramp_duration)
+            if ramp_duration > 0:
+                prog = (t - t0) / ramp_duration
             else:
-                new_weight = w_end
+                prog = 1.0
+            prog = max(0.0, min(1.0, prog))
 
+            scale = float(nn.w_start + (nn.w_end - nn.w_start) * prog)
 
+            # APPLY scaled weights (per-connection set)
+            w_new = w0 * scale
+            nest.SetStatus(connections, [{"weight": float(w)} for w in w_new])
 
-            #  APPLY WEIGHT
-            nest.SetStatus(connections, {"weight": new_weight})
-
-            # LOG AFTER APPLYING
             online_ramp_log["time"].append(t)
-            online_ramp_log["weight"].append(new_weight)
+            online_ramp_log["weight"].append(scale)  # log scale factor
 
-            num_spikes_flx_L = popfunc.read_recent_spike_data(L_mnp1.spike_detector_motor)
-            num_spikes_ext_L = popfunc.read_recent_spike_data(L_mnp2.spike_detector_motor)
+            # ---- feedback block unchanged (same as above) ----
+            # (keep your existing feedback code here)
 
-            L_fb.send_muscle_activation(num_spikes_flx_L, num_spikes_ext_L)
-            (
-                flx_1a_feedback_L, ext_1a_feedback_L,
-                flx_1b_feedback_L, ext_1b_feedback_L,
-                flx_11_feedback_L, ext_11_feedback_L
-            ) = L_fb.receive_muscle_afferents()
+            print(f"t = {t:.1f} ms, {specified_weight} scale: {scale:.3f}", end="\r")
 
-            if nn.fb_rg_flx:
-                nest.SetStatus(L_rg1.rg_flx_pg, {"rate": flx_1a_feedback_L})
-            if nn.fb_rg_ext:
-                nest.SetStatus(L_rg2.rg_ext_pg, {"rate": ext_1b_feedback_L})
-            if nn.fb_v2b:
-                nest.SetStatus(L_inh1.v2b_pg, {"rate": flx_1a_feedback_L})
-            if nn.fb_v1:
-                nest.SetStatus(L_inh2.v1_pg, {"rate": ext_1b_feedback_L})
-            if nn.fb_1a_flx:
-                nest.SetStatus(L_V1a_1.v1a_1_pg, {"rate": ext_1b_feedback_L})
-            if nn.fb_1a_ext:
-                nest.SetStatus(L_V1a_2.v1a_2_pg, {"rate": flx_1a_feedback_L})
-
-            # -------- RIGHT FEEDBACK --------
-            num_spikes_flx_R = popfunc.read_recent_spike_data(R_mnp1.spike_detector_motor)
-            num_spikes_ext_R = popfunc.read_recent_spike_data(R_mnp2.spike_detector_motor)
-
-            R_fb.send_muscle_activation(num_spikes_flx_R, num_spikes_ext_R)
-            (
-                flx_1a_feedback_R, ext_1a_feedback_R,
-                flx_1b_feedback_R, ext_1b_feedback_R,
-                flx_11_feedback_R, ext_11_feedback_R
-            ) = R_fb.receive_muscle_afferents()
-
-            if nn.fb_rg_flx:
-                nest.SetStatus(R_rg1.rg_flx_pg, {"rate": flx_1a_feedback_R})
-            if nn.fb_rg_ext:
-                nest.SetStatus(R_rg2.rg_ext_pg, {"rate": ext_1b_feedback_R})
-            if nn.fb_v2b:
-                nest.SetStatus(R_inh1.v2b_pg, {"rate": flx_1a_feedback_R})
-            if nn.fb_v1:
-                nest.SetStatus(R_inh2.v1_pg, {"rate": ext_1b_feedback_R})
-            if nn.fb_1a_flx:
-                nest.SetStatus(R_V1a_1.v1a_1_pg, {"rate": ext_1b_feedback_R})
-            if nn.fb_1a_ext:
-                nest.SetStatus(R_V1a_2.v1a_2_pg, {"rate": flx_1a_feedback_R})
-
-            # displaying the current duration of simulation and the assigned weight during the ONLINE ramp
-            print(f"t = {t:.1f} ms, {specified_weight} Weight: {new_weight:.3f}", end="\r")
-
+        w_after = np.array(nest.GetStatus(connections, "weight"), dtype=float)
+        print("\nAFTER mean:", float(np.mean(w_after)),
+            "min:", float(np.min(w_after)),
+            "max:", float(np.max(w_after)))
 
         t_stop = time.perf_counter()
-        print(f"\n[INFO] Online Ramp completed in {t_stop - t_start:.2f} s")
+        print(f"[INFO] Online Ramp completed in {t_stop - t_start:.2f} s")
 
         # ================= CPG UTILS FOR BOTH SIDES =================
         L_label = "LEFT"
@@ -716,7 +668,7 @@ if nn.rgs_connected == 1:
             L_V0V, R_V0V,
             L_V0D, R_V0D,
             L_label, 
-            online_ramp_log, # ok so instead of putting in new_weight we have a dict we are passing for online 
+            online_ramp_log, # we passing dict for online experiment. dict =  time & applied weight. 
             nn.online_ramp_weight,
             ramp_type="online"
         )
@@ -735,7 +687,7 @@ if nn.rgs_connected == 1:
             R_V0V, L_V0V,
             R_V0D, L_V0D,
             R_label,
-            online_ramp_log, # ok so instead of putting in new_weight we have a dict we are passing for online 
+            online_ramp_log, # we passing dict for online experiment. dict =  time & applied weight. 
             nn.online_ramp_weight,
             ramp_type="online"
             )
@@ -744,37 +696,38 @@ if nn.rgs_connected == 1:
     # ================= OFFLINE BLOCK STEPWISE RAMP =================
     if nn.offline_ramp_experiment == 1:
 
-        scale = [0, 2, 4, 8, 16]  # stepwise scaling factors
+        print("[INFO] OFFLINE Ramp Experiment is ON")
 
-        specified_weight = nn.online_ramp_weight
+        scales = [0, 2, 4, 8]  # consider [1,2,4,8] if you want baseline included
 
-        # get all connections for this weight type
-        connections = conn.synapses[nn.specified_weight]
+        specified_weight = nn.offline_ramp_weight
+        connections = conn.synapses[specified_weight]
+        print(f"[INFO] Ramp target: {specified_weight}, n_conns={len(connections)}")
 
-        # read base weight ONCE
-        base_w = nest.GetStatus(connections, "weight")[0]
+        # Snapshot baseline distribution ONCE
+        w0 = np.asarray(nest.GetStatus(connections, "weight"), dtype=float)
+        print("[BASELINE weights]")
+        print("  mean:", float(np.mean(w0)), "min:", float(np.min(w0)), "max:", float(np.max(w0)))
 
-        print("Offline Ramp Parameter is ON.")
-
-        init_time = 50
+        init_time = 50.0
         nest.Simulate(init_time)
 
-        block_duration = nn.block_time / len(scale)
+        block_duration = float(nn.block_time) / len(scales)
+        step_ms = float(nn.time_resolution) * 10.0
+        n_iters = int(block_duration / step_ms)
 
-        t_start = time.perf_counter()
+        for step_idx, s in enumerate(scales):
 
-        for step_idx, s in enumerate(scale):
+            # preserve distribution
+            w_new = w0 * float(s)
+            nest.SetStatus(connections, [{"weight": float(w)} for w in w_new])
 
-            new_weight = base_w * s
-            nest.SetStatus(connections, {"weight": new_weight})
+            print(f"\n[OFFLINE RAMP] Block {step_idx+1}/{len(scales)} | scale={s} | applied_weight={mean_w:.4f}")
 
-            print(f"[OFFLINE RAMP] Block {step_idx+1}/{len(scale)} | weight = {new_weight}")
+            t_start = time.perf_counter()
 
-            # simulate this block
-            block_steps = int(block_duration / nn.time_resolution)
-
-            for _ in range(int(block_steps / 10)):
-                nest.Simulate(nn.time_resolution * 10)
+            for _ in range(n_iters):
+                nest.Simulate(step_ms)
 
                 # --- L side feedback ---
                 num_spikes_flx_L = popfunc.read_recent_spike_data(L_mnp1.spike_detector_motor)
@@ -798,57 +751,55 @@ if nn.rgs_connected == 1:
                 if nn.fb_v2b:    nest.SetStatus(R_inh1.v2b_pg, {"rate": flx_1a_R})
                 if nn.fb_v1:     nest.SetStatus(R_inh2.v1_pg, {"rate": ext_1b_R})
 
-                print(f"t = {nest.biological_time}", end="\r")
-
             t_stop = time.perf_counter()
-            print(f"\nOffline Ramp Experiment Block for Weight: {specified_weight} completed in {round(t_stop - t_start, 2)} s.")
-                
-                # CPG UTILS FOR BOTH SIDES 
-            L_label = "LEFT"
-            R_label = "RIGHT"
+            print(f"[INFO] Block sim complete in {t_stop - t_start:.2f} s | t={float(nest.biological_time):.1f} ms")
 
-            print("[INFO] Calling LEFT utilis")
+            # ---- run analysis/plots for this block ----
+            L_label = f"LEFT_OFFLINE_x{s}"
+            R_label = f"RIGHT_OFFLINE_x{s}"
 
+            print("[INFO] Calling LEFT utils")
             cpg_utils(
-                    nn, popfunc, conn,
-                    L_rg1, L_rg2, R_rg1, R_rg2, 
-                    L_exc1, L_exc2, R_exc1, R_exc2, 
-                    L_V0C_1, L_V0C_2,
-                    L_V1a_1, L_V1a_2,
-                    L_inh1, L_inh2, R_inh2,
-                    L_rc_1, L_rc_2,
-                    L_mnp1, L_mnp2, R_mnp1, R_mnp2,
-                    L_V0V, R_V0V,
-                    L_V0D, R_V0D,
-                    L_label, 
-                    new_weight, # singular new weight passing 
-                    nn.offline_ramp_weight,
-                    ramp_type="offline"
-                )
+                nn, popfunc, conn,
+                L_rg1, L_rg2, R_rg1, R_rg2,
+                L_exc1, L_exc2, R_exc1, R_exc2,
+                L_V0C_1, L_V0C_2,
+                L_V1a_1, L_V1a_2,
+                L_inh1, L_inh2, R_inh2,
+                L_rc_1, L_rc_2,
+                L_mnp1, L_mnp2, R_mnp1, R_mnp2,
+                L_V0V, R_V0V,
+                L_V0D, R_V0D,
+                L_label,
+                mean_w,                 # reportable scalar weight value
+                specified_weight,       # correct weight name
+                ramp_type="offline"
+            )
 
-            print("[INFO] Calling RIGHT utilis")
-
+            print("[INFO] Calling RIGHT utils")
             cpg_utils(
-                    nn, popfunc, conn,
-                    R_rg1, R_rg2, L_rg1, L_rg2,
-                    R_exc1, R_exc2, L_exc1, L_exc2,
-                    R_V0C_1, R_V0C_2,
-                    R_V1a_1, R_V1a_2,
-                    R_inh1, R_inh2, L_inh2,
-                    R_rc_1, R_rc_2,
-                    R_mnp1, R_mnp2, L_mnp1, L_mnp2,
-                    R_V0V, L_V0V,
-                    R_V0D, L_V0D,
-                    R_label, 
-                    new_weight,  # singular new weight passing . 
-                    nn.offline_ramp_weight,
-                    ramp_type="offline"
-                )
+                nn, popfunc, conn,
+                R_rg1, R_rg2, L_rg1, L_rg2,
+                R_exc1, R_exc2, L_exc1, L_exc2,
+                R_V0C_1, R_V0C_2,
+                R_V1a_1, R_V1a_2,
+                R_inh1, R_inh2, L_inh2,
+                R_rc_1, R_rc_2,
+                R_mnp1, R_mnp2, L_mnp1, L_mnp2,
+                R_V0V, L_V0V,
+                R_V0D, L_V0D,
+                R_label,
+                mean_w,
+                specified_weight,
+                ramp_type="offline"
+            )
+
                 ##  =============================== END OF OFFLINE BLOCK STEPWISE RAMP ===============================
 
                 
 # if ramp experiments are not activated from the config file run simulations normally. 
-if nn.offline_ramp_experiment and nn.online_ramp_experiment == 0: 
+if (nn.offline_ramp_experiment == 0) and (nn.online_ramp_experiment == 0):
+
 
     # ================= SIMULATION FOR BOTH L_ AND R_ =================
 

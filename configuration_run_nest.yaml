@@ -1,15 +1,29 @@
 #Simulation parameters
-delta_clock: .1 #Simulation time step (ms)
+delta_clock: .1 #Simulation time step (ms) for the loop. 
 seed: 3141774 #Use 0 for a random seed, Control seed: 3141774
 t_steps: 2000 # use 10000 in normal sims, 2000 lowest sim time without errors 
 
+
 # 0FFLINE & ONLINE RAMP EXPERIMENT PARAMS 
+# ======================================================
 ramp_duration: 2000 # length of ramp experiment for both ONLINE and OFFLINE experiments 
+
+# OFFLINE 
 block_time: 2000 # used for offline ramp experiments 
-offline_ramp_experiment: 0 # takes the block_time then scales for EACH simulation 
-offline_ramp_weight: 'custom_v0d_rg_inh' # specified weight to scale for offline scaling 
-online_ramp_experiment: 1 # taking ramp_duration specified time scaling up DURING the simulation 
-online_ramp_weight: 'custom_v0d_rg_inh' # specified weight to scale for online scaling 
+offline_ramp_experiment: 1 # takes the block_time then scales for EACH simulation 
+offline_ramp_weight: 'custom_v0d_rg_inh_R' # specified weight to scale for offline scaling 
+
+# ONLINE 
+online_ramp_experiment: 0 # taking ramp_duration specified time scaling up DURING the simulation 
+online_ramp_weight: 'custom_v0d_rg_inh_R' # specified weight to scale for online scaling 
+w_start : 0 # works in scales, so ... 0 = baseline 
+# an important to note that if we are wanting to ramp up an inhibitory connection, we want to scale this negatively... otherwise 
+# a positive scale would reduce the inhibitory effect even further. 
+# so excitatory = positive scaling, inhibitory = negative scaling 
+w_end : -1  # end works in scale, so e.g., 5 = 500% of baseline
+
+
+# 0 to -1, 0 to -2, to -3? 
 
 # ======================================================
 
@@ -104,5 +118,6 @@ phase_ordered_plot: 1
 raster_plot: 0
 rate_coded_plot: 1
 spike_distribution_plot: 0
-
 heatmap_recruitment_plot: 0 
+online_ramp_heatmap_recruitment_plot: 0 
+offline_ramp_heatmap_recruitment_plot: 0 

@@ -137,16 +137,30 @@ class ConnectNetwork():
                 'syn_params': create_synapse_params(netparams.w_custom_v2a_mn_mean, netparams.w_custom_v2a_mn_std, netparams.synaptic_delay),
                 'sparsity': 'sparsity_custom_v2a_mn'
             },
-            'custom_rg_v0d': { #COMMISSURAL V0D 
-                'conn_dict': 'conn_dict_custom_rg_v0d',
-                'syn_params': create_synapse_params(netparams.w_custom_rg_v0d_mean, netparams.w_custom_rg_v0d_std, netparams.synaptic_delay),
-                'sparsity': 'sparsity_custom_rg_v0d'
+
+
+            'custom_rg_v0d_L': { #COMMISSURAL V0D 
+                'conn_dict': 'conn_dict_custom_rg_v0d_L',
+                'syn_params': create_synapse_params(netparams.w_custom_rg_v0d_L_mean, netparams.w_custom_rg_v0d_L_std, netparams.synaptic_delay),
+                'sparsity': 'sparsity_custom_rg_v0d_L'
             },
-            'custom_v0d_rg_inh': { #COMMISSURAL V0D
-                'conn_dict': 'conn_dict_custom_v0d_rg_inh',
-                'syn_params': create_synapse_params(netparams.w_custom_v0d_rg_inh_mean, netparams.w_custom_v0d_rg_inh_std, netparams.synaptic_delay),
-                'sparsity': 'sparsity_custom_v0d_rg_inh'
+            'custom_rg_v0d_R': { #COMMISSURAL V0D 
+                'conn_dict': 'conn_dict_custom_rg_v0d_R',
+                'syn_params': create_synapse_params(netparams.w_custom_rg_v0d_R_mean, netparams.w_custom_rg_v0d_R_std, netparams.synaptic_delay),
+                'sparsity': 'sparsity_custom_rg_v0d_R'
             },
+
+            'custom_v0d_rg_inh_L': { # LEFT COMMISSURAL CONNECTION V0D
+                'conn_dict': 'conn_dict_custom_v0d_rg_inh_L',
+                'syn_params': create_synapse_params(netparams.w_custom_v0d_rg_inh_L_mean, netparams.w_custom_v0d_rg_inh_L_std, netparams.synaptic_delay),
+                'sparsity': 'sparsity_custom_v0d_rg_inh_L'
+            },
+            'custom_v0d_rg_inh_R': { # RIGHT COMMISSURAL CONNECTION V0D
+                'conn_dict': 'conn_dict_custom_v0d_rg_inh_R',
+                'syn_params': create_synapse_params(netparams.w_custom_v0d_rg_inh_R_mean, netparams.w_custom_v0d_rg_inh_R_std, netparams.synaptic_delay),
+                'sparsity': 'sparsity_custom_v0d_rg_inh_R'
+            },
+
             'custom_v0v_rg_inh': { #COMMISSURAL V0V
                 'conn_dict': 'conn_dict_custom_v0v_rg_inh',
                 'syn_params': create_synapse_params(netparams.w_custom_v0v_rg_inh_mean, netparams.w_custom_v0v_rg_inh_std, netparams.synaptic_delay),
