@@ -310,11 +310,11 @@ def convolve_spiking_activity(population_size,population):
     ])
     
     # binning spikes for convolving 
-    binned_spikes = sliding_time_window_matrix(binary_spikes,nn.time_window)
+    #binned_spikes = sliding_time_window_matrix(binary_spikes,nn.time_window)
 
-    smoothed_spikes = smooth(binned_spikes, nn.convstd_rate)
+    smoothed_spikes = smooth(binary_spikes, nn.convstd_rate)
 
-    time_vector = np.arange(binned_spikes.shape[1]) * nn.time_resolution
+    time_vector = np.arange(binary_spikes.shape[1]) * nn.time_resolution
 
     # chop edges amount paramter 
     if nn.chop_edges_amount > 0.0:
