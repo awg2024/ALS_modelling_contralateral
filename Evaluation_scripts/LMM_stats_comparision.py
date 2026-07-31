@@ -61,9 +61,10 @@ import argparse
 import glob
 import os
 import sys
-
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 
 try:
     import statsmodels.api as sm
@@ -75,12 +76,6 @@ except ImportError:
     )
 
 from scipy import stats
-
-
-# =============================================================================
-# SETTINGS — edit these to match your file locations and timepoint naming
-# =============================================================================
-
 BIO_CSV        = r"/mnt/d/Users/ag399/Dissertation/phase_comparision/systemic_raw_data.csv"
 COMP_CSV_GLOB  = r"/mnt/d/Users/ag399/Dissertation/phase_comparision/computational_seed_summary_*.csv"
 OUTPUT_DIR     = r"/mnt/d/Users/ag399/Dissertation/phase_comparision/LMM_Output"
@@ -355,7 +350,7 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
     combined_csv_path = os.path.join(args.output_dir, "combined_phase_data.csv")
     combined_df.to_csv(combined_csv_path, index=False)
-    print(f"\n[CSV] Saved combined tidy dataframe -> {combined_csv_path}")
+    print(f"\n[CSV] Saved combined into: {combined_csv_path}")
  
     full_model, reduced_model = fit_models(combined_df)
     lr_stat, df_diff, p_value = print_report(combined_df, full_model, reduced_model)
@@ -366,7 +361,166 @@ def main():
         f.write(full_model.summary().as_text())
         f.write("\n\nLikelihood-ratio test for Timepoint:Source interaction\n")
         f.write(f"chi2({df_diff:.0f}) = {lr_stat:.3f}, p = {p_value:.4f}\n")
-    print(f"[TXT] Saved full model summary + LRT -> {results_txt_path}")
+    print(f"[TXT] Saved full model summary + LRT into... {results_txt_path}")
+
+    summary = []
+
+    ##############################################################################
+    # PANEL O - Absolute % deviation from Healthy
+    ##############################################################################
+
+    from scipy import stats
+
+    # Calculate % deviation for every individual observation
+    plot_rows = []
+
+    for source in combined_df["Source"].cat.categories:
+
+        df = combined_df[combined_df["Source"] == source].copy()
+
+        healthy_mean = df.loc[df["Timepoint"] == "Healthy", "Phase"].mean()
+
+        for tp in ["p45", "p63", "p112"]:
+
+            tp_df = df[df["Timepoint"] == tp].copy()
+
+            tp_df["PercentChange"] = (
+                np.abs(tp_df["Phase"] - healthy_mean)
+                / abs(healthy_mean)
+                * 100
+            )
+
+            plot_rows.append(
+                tp_df[["Source", "Timepoint", "PercentChange"]]
+            )
+
+    plot_df = pd.concat(plot_rows, ignore_index=True)
+
+    # --- Critical fix: drop the unused "Healthy" category ---
+    # Even though no Healthy rows are appended, if Timepoint is a categorical
+    # dtype inherited from combined_df, "Healthy" remains a *registered* category
+    # and seaborn will still reserve an empty slot for it on the x-axis.
+    if pd.api.types.is_categorical_dtype(plot_df["Timepoint"]):
+        plot_df["Timepoint"] = plot_df["Timepoint"].cat.remove_unused_categories()
+    else:
+        plot_df["Timepoint"] = plot_df["Timepoint"].astype(str)
+
+    # Set explicit order (also renames labels to match the reference figure)
+    tp_order = ["p45", "p63", "p112"]
+    tp_labels = {"p45": "P45", "p63": "P63", "p112": "P112"}
+    plot_df["Timepoint"] = pd.Categorical(
+        plot_df["Timepoint"], categories=tp_order, ordered=True
+    )
+
+    sns.set_style("white")
+
+    fig, ax = plt.subplots(figsize=(6.5, 4.6))
+
+    palette = {
+        "Comp": "#7FA8D9",   # pastel blue
+        "Bio":  "#F0A868"    # pastel orange
+    }
+
+    # Boxplots
+    sns.boxplot(
+        data=plot_df,
+        x="Timepoint",
+        y="PercentChange",
+        hue="Source",
+        palette=palette,
+        width=0.55,
+        linewidth=1.2,
+        fliersize=0,
+        boxprops=dict(alpha=0.9),
+        ax=ax
+    )
+
+    # Individual observations (matching box color, black edge, jittered)
+    sns.stripplot(
+        data=plot_df,
+        x="Timepoint",
+        y="PercentChange",
+        hue="Source",
+        palette=palette,
+        dodge=True,
+        jitter=0.15,
+        size=4,
+        edgecolor="black",
+        linewidth=0.4,
+        alpha=0.85,
+        ax=ax
+    )
+
+    # Remove duplicate legends, place outside plot like reference
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(
+        handles[:2], ["Computational", "Biological"],
+        frameon=False,
+        loc="center left",
+        bbox_to_anchor=(1.02, 0.5)
+    )
+
+    ax.set_ylabel("Absolute deviation from Healthy (%)", fontsize=11)
+    ax.set_xlabel("")
+    ax.set_ylim(bottom=0)
+    ax.tick_params(axis="both", labelsize=10)
+
+    sns.despine(ax=ax)
+
+
+    def stars(p):
+        if p < 0.001:
+            return "***"
+        elif p < 0.01:
+            return "**"
+        elif p < 0.05:
+            return "*"
+        else:
+            return f"{p:.3f}"  # show exact p-value when not significant, like panel n
+
+    y_max = plot_df["PercentChange"].max()
+    bracket_h = y_max * 0.06
+    y0 = y_max * 1.05
+
+    for i, tp in enumerate(tp_order):
+        comp_vals = plot_df.loc[
+            (plot_df["Timepoint"] == tp) & (plot_df["Source"] == "Comp"), "PercentChange"
+        ]
+        bio_vals = plot_df.loc[
+            (plot_df["Timepoint"] == tp) & (plot_df["Source"] == "Bio"), "PercentChange"
+        ]
+
+        _, p = stats.mannwhitneyu(comp_vals, bio_vals, alternative="two-sided")
+        label = stars(p)
+
+        x1, x2 = i - 0.2, i + 0.2  # dodge offsets for hue groups
+        y = y0
+        ax.plot([x1, x1, x2, x2], [y, y + bracket_h, y + bracket_h, y],
+                lw=1.1, c="black")
+        ax.text((x1 + x2) / 2, y + bracket_h * 1.15, label,
+                ha="center", va="bottom",
+                fontsize=10 if "*" in label else 9)
+
+    ax.set_ylim(top=y0 + bracket_h * 3)
+
+    plt.tight_layout()
+
+    plt.savefig(
+        os.path.join(args.output_dir, "phase_percent_change_from_healthy.png"),
+        dpi=300,
+        bbox_inches="tight"
+    )
+
+    plt.savefig(
+        os.path.join(OUTPUT_DIR, "phase_comparison_plot.svg"),
+        format="svg",
+        bbox_inches="tight"
+    )
+
+    print("Saved SVG Figure.")
+
+    plt.show()
+
  
  
 if __name__ == "__main__":
