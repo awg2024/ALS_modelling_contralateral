@@ -365,11 +365,10 @@ def main():
 
     summary = []
 
-    ##############################################################################
-    # PANEL O - Absolute % deviation from Healthy
-    ##############################################################################
 
-    from scipy import stats
+    # =========================================================
+    # PANEL O - Absolute % deviation from Healthy
+    # =========================================================
 
     # Calculate % deviation for every individual observation
     plot_rows = []
@@ -396,46 +395,63 @@ def main():
 
     plot_df = pd.concat(plot_rows, ignore_index=True)
 
-    # --- Critical fix: drop the unused "Healthy" category ---
-    # Even though no Healthy rows are appended, if Timepoint is a categorical
-    # dtype inherited from combined_df, "Healthy" remains a *registered* category
-    # and seaborn will still reserve an empty slot for it on the x-axis.
+    # Drop the unused "Healthy" category so it doesn't reserve an x-slot
     if pd.api.types.is_categorical_dtype(plot_df["Timepoint"]):
         plot_df["Timepoint"] = plot_df["Timepoint"].cat.remove_unused_categories()
     else:
         plot_df["Timepoint"] = plot_df["Timepoint"].astype(str)
 
-    # Set explicit order (also renames labels to match the reference figure)
     tp_order = ["p45", "p63", "p112"]
-    tp_labels = {"p45": "P45", "p63": "P63", "p112": "P112"}
     plot_df["Timepoint"] = pd.Categorical(
         plot_df["Timepoint"], categories=tp_order, ordered=True
     )
 
+    # =========================================================
+    # PUBLICATION STYLE
+    # =========================================================
+
+    plt.rcParams.update({
+        "font.family": "sans-serif",
+        "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+        "font.size": 11,
+        "axes.linewidth": 0.8,
+        "xtick.major.width": 0.8,
+        "ytick.major.width": 0.8,
+        "xtick.major.size": 4,
+        "ytick.major.size": 4,
+        "svg.fonttype": "none",
+    })
+
     sns.set_style("white")
 
-    fig, ax = plt.subplots(figsize=(6.5, 4.6))
+    fig, ax = plt.subplots(figsize=(7.2,4.6), dpi=350)
 
     palette = {
-        "Comp": "#7FA8D9",   # pastel blue
-        "Bio":  "#F0A868"    # pastel orange
+        "Comp": "#EFA766",   # muted orange
+        "Bio":  "#7FA6D9"    # muted blue
     }
 
-    # Boxplots
+    box_width = 0.5
+    dodge_amount = box_width / 2 * 0.5  # matches seaborn's internal hue-dodge offset for 2 levels
+
+    # --- Boxplots ---
     sns.boxplot(
         data=plot_df,
         x="Timepoint",
         y="PercentChange",
         hue="Source",
         palette=palette,
-        width=0.55,
-        linewidth=1.2,
+        width=box_width,
+        linewidth=1.0,
         fliersize=0,
-        boxprops=dict(alpha=0.9),
+        boxprops=dict(alpha=0.85, edgecolor="0.25"),
+        whiskerprops=dict(color="0.25"),
+        capprops=dict(color="0.25"),
+        medianprops=dict(color="0.25", linewidth=1.2),
         ax=ax
     )
 
-    # Individual observations (matching box color, black edge, jittered)
+    # --- Individual points, no edge, aligned with box centers ---
     sns.stripplot(
         data=plot_df,
         x="Timepoint",
@@ -443,65 +459,32 @@ def main():
         hue="Source",
         palette=palette,
         dodge=True,
-        jitter=0.15,
-        size=4,
-        edgecolor="black",
-        linewidth=0.4,
-        alpha=0.85,
+        jitter=0.12,
+        size=4.5,
+        linewidth=0.5,        # no black border
+        alpha=0.75,
         ax=ax
     )
 
-    # Remove duplicate legends, place outside plot like reference
+    # Remove duplicate legend entries, keep only boxplot's
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(
         handles[:2], ["Computational", "Biological"],
         frameon=False,
         loc="center left",
-        bbox_to_anchor=(1.02, 0.5)
+        bbox_to_anchor=(1.02, 0.5),
+        handlelength=1.2,
+        handleheight=1.2,
+        fontsize=10.5
     )
 
-    ax.set_ylabel("Absolute deviation from Healthy (%)", fontsize=11)
+    ax.set_ylabel("Absolute deviation from Healthy (%)", fontsize=12, labelpad=8)
     ax.set_xlabel("")
     ax.set_ylim(bottom=0)
-    ax.tick_params(axis="both", labelsize=10)
+    ax.set_xticklabels(["P45", "P63", "P112"], fontsize=11)
+    ax.tick_params(axis="both", labelsize=10.5)
 
     sns.despine(ax=ax)
-
-
-    def stars(p):
-        if p < 0.001:
-            return "***"
-        elif p < 0.01:
-            return "**"
-        elif p < 0.05:
-            return "*"
-        else:
-            return f"{p:.3f}"  # show exact p-value when not significant, like panel n
-
-    y_max = plot_df["PercentChange"].max()
-    bracket_h = y_max * 0.06
-    y0 = y_max * 1.05
-
-    for i, tp in enumerate(tp_order):
-        comp_vals = plot_df.loc[
-            (plot_df["Timepoint"] == tp) & (plot_df["Source"] == "Comp"), "PercentChange"
-        ]
-        bio_vals = plot_df.loc[
-            (plot_df["Timepoint"] == tp) & (plot_df["Source"] == "Bio"), "PercentChange"
-        ]
-
-        _, p = stats.mannwhitneyu(comp_vals, bio_vals, alternative="two-sided")
-        label = stars(p)
-
-        x1, x2 = i - 0.2, i + 0.2  # dodge offsets for hue groups
-        y = y0
-        ax.plot([x1, x1, x2, x2], [y, y + bracket_h, y + bracket_h, y],
-                lw=1.1, c="black")
-        ax.text((x1 + x2) / 2, y + bracket_h * 1.15, label,
-                ha="center", va="bottom",
-                fontsize=10 if "*" in label else 9)
-
-    ax.set_ylim(top=y0 + bracket_h * 3)
 
     plt.tight_layout()
 
@@ -520,8 +503,7 @@ def main():
     print("Saved SVG Figure.")
 
     plt.show()
-
- 
+    
  
 if __name__ == "__main__":
     main()
