@@ -1,0 +1,109 @@
+#Simulation parameters
+delta_clock: .1 #Simulation time step (ms) for the loop. 
+seed: 3141774 #Use 0 for a random seed, Control seed: 3141774
+t_steps: 5000 # SIMULATION TIME GLOBAL PARM
+ramp_duration: 5000 # length of ONLINE AND OFFLINE ramp experiments in a simulation 
+
+# Online Ramp parameters for Weight and Drive 
+online_ramp_experiment: 0 # taking ramp_duration specified time scaling up DURING the simulation #
+online_ramp_weight_experiment: 0 # Ramp weight scaling experiment 
+online_ramp_weight: 'custom_v0d_rg_inh_R' # specified weight to scale for online scaling 
+w_start : 1.25 # works in scales, so ... 0 = baseline 
+w_end : 1.5  # w_end works in scale, so e.g., 5 = 500% of baseline 
+online_ramp_drive_experiment: 0  # Ramp drive scaling experiment 
+online_ramp_drive_targets: 
+  - "L_V0D.v0d_bursting" # Specified targets of the I_e drive manipualtion baseline(-100)
+  - "R_V0D.v0d_bursting"
+d_start: -180 # specified drive params (pA)
+d_end:  -240 
+
+# Online Stepwise Parameters for Weight and Drive 
+online_stepwise_experiment: 1 #  taking ramp_duration specified time scaling (in a stepwise manner) up DURING the simulation 
+stepwise_weight_experiment: 1 # Are you going to be running a stepwise weight manipulation experiment? 
+stepwise_drive_experiment: 0 # Are you going to be running a stepwise descending drive experiment 
+step_scales: [0]  # these are multipliers applied to the baseline synaptic weights of the connection you selected - FOR BOTH WEIGHT AND DRIVE EXPERIMENT  
+step_hold_ms: 5000   #  the duration taken for each stepwise  - for both experiments 
+online_stepwise_weight: 
+   - 'custom_v3_rg_L' # V3 contralateral weight specified
+   - 'custom_v3_rg_R'
+  # - 'custom_v0d_rg_inh_L' # V0d contralateral weight specified
+  # - 'custom_v0d_rg_inh_R'
+online_stepwise_drive_targets:  #  what weight targets are wanting this stepwise experiment to effect?  
+   - "L_V3_Flx.v3_bursting" 
+   - "L_V3_Ext.v3_bursting"
+
+# Degeneration Params 
+optimizing: 0 #Use 1 when running Bayesian optimization to find parameters
+days_after_onset: 0 #Healthy = 0; P45 = 45; P63 = 63; P112 = 112 Degeneration Params. NOTE: This can be overriden with .sh run files. 
+asymmetric_onset: 0 # 0 = Symmetric Degeneration, 1 = Asymmetric Degeneration
+asym_side: "L" # If yes ^ what side are we asymmetrically degenerating? "R" or "L"
+v0d_commissural_degeneration: 1 # 0 = V0d remain intact. 
+v3_commissural_hyperexcitation: 1 # 0 = V3 do not get hyperexcited
+synaptically_stabilized: 0 #0 = No; 1 = Yes #Test exogenous intervention
+synaptic_compensation: 0 #0 = No; 1 = Yes
+#Test endogenous synaptic effects between RC-MN
+slow_syn_dyn: 0 #Use 1 to increase rise/decay times of excitatory synapses to RCs and inhibitory synapses to MNs
+slow_syn_bias: 'none' #Use 'flx' for flexor side bias, 'ext' for extensor side bias, 'none' for no bias
+sim_fb_freq: 2.5 #Hz #Add feedback
+#Use 1 to allow feedback to the relevant populations
+
+# Params to enable feedback to rgs and mnp 
+fb_rg_flx: 0
+fb_rg_ext: 0
+fb_v2b: 0
+fb_v1: 0
+fb_1a_flx: 0
+fb_1a_ext: 0
+
+#Network parameters
+freq_test: 1    #1 = 200/320; 2 = 400/640 - changing the tonic drive into the network. 
+remove_inhibition: 0 #Use 1 to remove inhibition within the RG populations
+remove_descending_drive: 0 #Use 1 to remove descending drive to interneuron populations downstream of the RG layer 
+rgs_connected: 1 #Use 0 to remove mutual inhibition between the RG populations
+v1v2b_mn_connected: 1 #Use 0 to remove projections from V1/V2b pops to MNPs
+v2a_mn_intact: 0 #Use 1 to preserve V2a and MN populations at P112
+v2a_intact: 0 #Use 1 to preserve V2a populations at P112
+mn_intact: 1 #Use 1 to preserve MN populations at P112
+
+# Contralateral Projecting Populations 
+low_locomotion_v0d_right: 1 # connections of v0d - being excited by RG_Flx and inhibiting OPPOSITE RG_FLX 
+low_locomotion_v0d_left: 1
+low_locomotion_v3_left: 1
+low_locomotion_v3_right: 1
+
+#Data analysis parameters
+calculate_balance: 0
+chop_edges_amount: 5000
+convstd_rate: 200
+convstd_pca: 200
+downsampling_convolved: 0
+high_pass_filtered: false
+PCA_components: 5
+remove_mean: false
+remove_silent: true
+smoothing_window: 50 #Ex. 50: 50*0.1=5ms time window
+sync_regularity: 0
+bifurcation_test: 0 # if you are running multi-seed bifurication analysis (STEPWISE , RAMP) & want to specify a folder to run them under
+bifurication_tag: 'Ipsi & contralateral! ' #etc... Drive, Weight _ BL, T, AT
+
+# Plot selection
+isf_output: 1
+membrane_potential_plot: 1
+pca_plot: 1
+phase_ordered_plot: 1
+raster_plot: 0
+overlap_plot: 1
+rate_coded_plot: 1
+spike_distribution_plot: 0
+heatmap_recruitment_plot: 0 
+v0d_degeneration_plot: 1
+
+# Saving CSV Results 
+save_metric_summary_table: 0 # save metric summary table useful for normal sims for metrics duty, freq, bd, ai 
+save_all_pops: 1 #Use 1 to save spike data from all neural populations, use 0 to save only MNP data
+save_v0d_pops: 1
+save_rg_v1_pops: 1 
+save_v3_pops: 1
+save_results: 1
+save_as_svg: 1 # for inkscape figure panel editing
+healthy_regime_metrics: 0 # Debugging for healthy metrics of population. This helps determine the regime change parameters. 

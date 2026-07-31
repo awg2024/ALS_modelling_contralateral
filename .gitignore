@@ -1,0 +1,20 @@
+# Simulation outputs
+saved_simulations/
+*.log
+*.out
+*.dat
+*.h5
+*.pkl
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Virtual environment (if local)
+venv/
+.env/
+
+conda_env_backup/
+conda_env_backup/
